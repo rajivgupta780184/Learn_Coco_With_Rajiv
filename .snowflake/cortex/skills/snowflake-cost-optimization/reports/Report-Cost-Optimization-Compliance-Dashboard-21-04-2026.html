@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cost Optimization Compliance Dashboard — 21-04-2026</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--accent:#38bdf8;--warn:#f59e0b;--crit:#ef4444;--good:#22c55e;--text:#e2e8f0;--muted:#94a3b8;--white:#f8fafc;--purple:#a78bfa}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px}
+.banner{background:linear-gradient(135deg,#059669,#0ea5e9);border-radius:12px;padding:24px 32px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.banner h1{font-size:1.5rem;color:var(--white)}
+.banner .meta{display:flex;gap:16px;flex-wrap:wrap}
+.banner .meta span{background:rgba(255,255,255,.15);padding:6px 14px;border-radius:8px;font-size:.85rem;color:var(--white)}
+.health-score{display:flex;justify-content:center;margin:24px 0}
+.health-ring{width:180px;height:180px;border-radius:50%;background:conic-gradient(var(--good) 0% 0%, var(--border) 0% 100%);display:flex;align-items:center;justify-content:center;position:relative}
+.health-ring-inner{width:140px;height:140px;border-radius:50%;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.health-ring-inner .pct{font-size:2.5rem;font-weight:800;color:var(--good)}
+.health-ring-inner .lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center}
+.kpi .val{font-size:1.8rem;font-weight:700}
+.kpi .lbl{font-size:.78rem;color:var(--muted);text-transform:uppercase;margin-top:2px}
+h2{font-size:1.2rem;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:.88rem}
+th{background:var(--card);text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);color:var(--accent);font-weight:600}
+td{padding:10px 14px;border-bottom:1px solid var(--border)}
+.progress-bar{background:var(--border);border-radius:6px;height:18px;overflow:hidden;position:relative;min-width:120px}
+.progress-fill{height:100%;border-radius:6px;transition:width .4s ease}
+.progress-label{position:absolute;right:6px;top:0;line-height:18px;font-size:.72rem;font-weight:600;color:var(--white)}
+.status{display:inline-block;padding:2px 10px;border-radius:6px;font-size:.78rem;font-weight:600}
+.status-pending{background:rgba(245,158,11,.15);color:var(--warn)}
+.status-done{background:rgba(34,197,94,.15);color:var(--good)}
+.status-overdue{background:rgba(239,68,68,.15);color:var(--crit)}
+.status-na{background:rgba(148,163,184,.15);color:var(--muted)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.panel h3{font-size:1rem;margin-bottom:12px;color:var(--accent)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.risk-flag{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:14px;margin-bottom:10px}
+.risk-flag strong{color:var(--crit)}
+footer{margin-top:32px;text-align:center;color:var(--muted);font-size:.78rem}
+@media(max-width:768px){.grid-2{grid-template-columns:1fr}}
+@media print{body{background:#fff;color:#1e293b}.banner{-webkit-print-color-adjust:exact}.panel,.kpi{break-inside:avoid;border:1px solid #ccc}}
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div>
+    <h1>Cost Optimization Compliance Dashboard</h1>
+    <p style="color:rgba(255,255,255,.8);font-size:.9rem">Account: jc99050 &nbsp;|&nbsp; Generated: 21 April 2026</p>
+  </div>
+  <div class="meta">
+    <span>📊 Phase 3</span>
+    <span>Source: Assessment + Recommendation Reports</span>
+  </div>
+</div>
+
+<div class="health-score">
+  <div class="health-ring" style="background:conic-gradient(var(--good) 0% 0%, var(--border) 0% 100%)">
+    <div class="health-ring-inner">
+      <div class="pct">0%</div>
+      <div class="lbl">Health Score</div>
+    </div>
+  </div>
+</div>
+<p style="text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:20px">Remediation not yet started — 5 recommendations pending action</p>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="val" style="color:var(--accent)">18.55</div><div class="lbl">Total Credits / 30d</div></div>
+  <div class="kpi"><div class="val" style="color:var(--crit)">$55.66</div><div class="lbl">Total Cost / 30d</div></div>
+  <div class="kpi"><div class="val" style="color:var(--good)">$37.59</div><div class="lbl">Potential Savings</div></div>
+  <div class="kpi"><div class="val" style="color:var(--warn)">0%</div><div class="lbl">Cost Recovery</div></div>
+  <div class="kpi"><div class="val" style="color:var(--purple)">7</div><div class="lbl">Total Findings</div></div>
+  <div class="kpi"><div class="val" style="color:var(--warn)">5</div><div class="lbl">Recommendations</div></div>
+</div>
+
+<h2>Category Breakdown</h2>
+<table>
+  <tr><th>Category</th><th>Findings</th><th>Recommendations</th><th>Potential Savings</th><th>Completion</th></tr>
+  <tr>
+    <td><strong>1. Compute / Warehouse</strong></td><td>3</td><td>3 (R2, R3, R5)</td><td>~$0.90/mo</td>
+    <td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--warn)"></div><div class="progress-label">0%</div></div></td>
+  </tr>
+  <tr>
+    <td><strong>2. Storage</strong></td><td>1</td><td>0</td><td>$0</td>
+    <td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--good)"></div><div class="progress-label">100%</div></div></td>
+  </tr>
+  <tr>
+    <td><strong>3. Serverless</strong></td><td>1</td><td>0</td><td>$0</td>
+    <td><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--good)"></div><div class="progress-label">100%</div></div></td>
+  </tr>
+  <tr>
+    <td><strong>4. AI Services / Cortex</strong></td><td>2</td><td>2 (R1, R4)</td><td>~$36.69/mo</td>
+    <td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--warn)"></div><div class="progress-label">0%</div></div></td>
+  </tr>
+</table>
+
+<h2>Priority Tracking vs SLA</h2>
+<table>
+  <tr><th>Priority</th><th>SLA Window</th><th>Items</th><th>Status</th><th>SLA Deadline</th><th>Progress</th></tr>
+  <tr>
+    <td><strong style="color:var(--crit)">P0 — Critical</strong></td>
+    <td>24 hours</td>
+    <td>R1: Suspend SPCS pool</td>
+    <td><span class="status status-pending">Pending</span></td>
+    <td>22 Apr 2026</td>
+    <td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--crit)"></div><div class="progress-label">0%</div></div></td>
+  </tr>
+  <tr>
+    <td><strong style="color:var(--warn)">P1 — High</strong></td>
+    <td>7 days</td>
+    <td>R2: Auto-suspend 60s</td>
+    <td><span class="status status-pending">Pending</span></td>
+    <td>28 Apr 2026</td>
+    <td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--warn)"></div><div class="progress-label">0%</div></div></td>
+  </tr>
+  <tr>
+    <td><strong style="color:var(--accent)">P2 — Medium</strong></td>
+    <td>30 days</td>
+    <td>R3: Resource monitors<br>R4: Monitor Cortex Code</td>
+    <td><span class="status status-pending">Pending</span></td>
+    <td>21 May 2026</td>
+    <td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--accent)"></div><div class="progress-label">0%</div></div></td>
+  </tr>
+  <tr>
+    <td><strong style="color:var(--good)">P3 — Low</strong></td>
+    <td>90 days</td>
+    <td>R5: Track spillage trend</td>
+    <td><span class="status status-pending">Pending</span></td>
+    <td>20 Jul 2026</td>
+    <td><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--good)"></div><div class="progress-label">0%</div></div></td>
+  </tr>
+</table>
+
+<h2>Risk Flagging</h2>
+<div class="risk-flag">
+  <strong>⚠ AT RISK — P0 (R1): Suspend SPCS compute pool</strong>
+  <p style="margin-top:4px;font-size:.88rem">SLA deadline: <strong>22 Apr 2026 (within 24 hours)</strong>. This item has not been actioned. The SYSTEM_COMPUTE_POOL_CPU pool continues to accrue ~0.41 credits/day ($1.22/day). Immediate action recommended to prevent further unnecessary spend.</p>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <h3>AI Cost Recovery Panel</h3>
+    <p style="font-size:.88rem;margin-bottom:12px"><strong>SPCS dominates AI spend</strong> — 12.23 credits from SYSTEM_COMPUTE_POOL_CPU.</p>
+    <table>
+      <tr><th>Cortex Sub-Service</th><th>Credits (30d)</th><th>Status</th></tr>
+      <tr><td>SPCS Compute Pool</td><td>12.23</td><td><span class="status status-pending">Action needed</span></td></tr>
+      <tr><td>Cortex Code Snowsight</td><td>3.65</td><td><span class="status status-na">Monitoring</span></td></tr>
+      <tr><td>Cortex Code CLI</td><td>1.71</td><td><span class="status status-na">Monitoring</span></td></tr>
+      <tr><td>AI SQL Functions</td><td>0</td><td><span class="status status-done">No usage</span></td></tr>
+      <tr><td>Cortex Analyst</td><td>0</td><td><span class="status status-done">No usage</span></td></tr>
+      <tr><td>Cortex Search</td><td>0</td><td><span class="status status-done">No usage</span></td></tr>
+      <tr><td>Cortex Fine-Tuning</td><td>0</td><td><span class="status status-done">No usage</span></td></tr>
+      <tr><td>Document AI</td><td>0</td><td><span class="status status-done">No usage</span></td></tr>
+    </table>
+    <p style="font-size:.82rem;color:var(--muted);margin-top:8px">No AI function token usage detected — model tier substitution savings: N/A.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Cost Recovery Score</h3>
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:3rem;font-weight:800;color:var(--crit)">$0</div>
+      <div style="font-size:.85rem;color:var(--muted)">of $37.59 potential recovered</div>
+      <div style="margin-top:12px">
+        <div class="progress-bar" style="height:24px">
+          <div class="progress-fill" style="width:0%;background:var(--crit)"></div>
+          <div class="progress-label" style="line-height:24px">0%</div>
+        </div>
+      </div>
+    </div>
+    <table style="font-size:.82rem">
+      <tr><th>Metric</th><th>Value</th></tr>
+      <tr><td>Total potential savings</td><td>$37.59/mo</td></tr>
+      <tr><td>Savings realized</td><td>$0.00/mo</td></tr>
+      <tr><td>Recovery rate</td><td>0%</td></tr>
+      <tr><td>Remaining opportunity</td><td>$37.59/mo</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2>Detailed Remediation Tracker</h2>
+<table>
+  <tr><th>Rec ID</th><th>Priority</th><th>Description</th><th>Category</th><th>Savings</th><th>Complexity</th><th>Status</th><th>SLA</th></tr>
+  <tr>
+    <td>R1</td><td style="color:var(--crit)">P0</td><td>Suspend SPCS compute pool</td><td>AI/SPCS</td>
+    <td>$36.69/mo</td><td>Low</td><td><span class="status status-pending">Pending</span></td><td>22 Apr</td>
+  </tr>
+  <tr>
+    <td>R2</td><td style="color:var(--warn)">P1</td><td>COMPUTE_WH auto-suspend → 60s</td><td>Compute</td>
+    <td>$0.90/mo</td><td>Low</td><td><span class="status status-pending">Pending</span></td><td>28 Apr</td>
+  </tr>
+  <tr>
+    <td>R3</td><td style="color:var(--accent)">P2</td><td>Create resource monitors</td><td>Compute</td>
+    <td>Governance</td><td>Low</td><td><span class="status status-pending">Pending</span></td><td>21 May</td>
+  </tr>
+  <tr>
+    <td>R4</td><td style="color:var(--accent)">P2</td><td>Monitor Cortex Code growth</td><td>AI/Cortex</td>
+    <td>Awareness</td><td>Low</td><td><span class="status status-pending">Pending</span></td><td>21 May</td>
+  </tr>
+  <tr>
+    <td>R5</td><td style="color:var(--good)">P3</td><td>Track query spillage trend</td><td>Compute</td>
+    <td>Preventive</td><td>Low</td><td><span class="status status-pending">Pending</span></td><td>20 Jul</td>
+  </tr>
+</table>
+
+<footer>
+  Snowflake Cost Optimization Compliance Dashboard &nbsp;|&nbsp; 21 April 2026 &nbsp;|&nbsp; Sources: Phase 1 Assessment + Phase 2 Recommendations &nbsp;|&nbsp; Rate: $3/credit
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const ring = document.querySelector('.health-ring');
+  const completedRecs = 0;
+  const totalRecs = 5;
+  const storageDone = 1;
+  const serverlessDone = 1;
+  const totalFindings = 7;
+  const healthPct = Math.round(((storageDone + serverlessDone + completedRecs) / (totalFindings)) * 100);
+  ring.style.background = 'conic-gradient(#22c55e 0% ' + healthPct + '%, #334155 ' + healthPct + '% 100%)';
+  ring.querySelector('.pct').textContent = healthPct + '%';
+});
+</script>
+
+</body>
+</html>
