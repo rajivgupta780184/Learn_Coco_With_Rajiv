@@ -1,10 +1,15 @@
+---
+name: coco-cost-analyzer
+description: Generate a self-contained HTML dashboard for Snowflake Cortex Code (CoCo) usage across Snowsight and CLI, covering Tokens, Token Credits, per-model granular breakdown, and credit-cost trends. Triggers: CoCo cost, Cortex Code usage, CoCo analytics, CoCo dashboard, CoCo report, token usage, token credits, CLI usage, Snowsight usage, CoCo spending, Cortex Code cost analysis.
+---
+
 # CoCo Usage Analytics — Cortex Code Skill Prompt
 
 **Version:** 5.1.0
 
 Generate a self-contained HTML dashboard for Snowflake Cortex Code (CoCo) usage across Snowsight and CLI, covering: Tokens, Token Credits, per-model granular breakdown, and credit-cost trends. Uses ONLY real data from Snowflake ACCOUNT_USAGE views — no dummy or sample data.
 
-**Output filename:** `Coco_Cost_Analyzer/Reports/COCO-COST-ANALYTICS-DD-MM-YYYY.html` where DD-MM-YYYY is the current date (e.g. `Coco_Cost_Analyzer/Reports/COCO-COST-ANALYTICS-24-03-2026.html`). The file MUST be saved under the `Coco_Cost_Analyzer/Reports/` folder only.
+**Output filename:** `coco_cost_analyzer/reports/COCO-COST-ANALYTICS-DD-MM-YYYY.html` where DD-MM-YYYY is the current date (e.g. `coco_cost_analyzer/reports/COCO-COST-ANALYTICS-24-03-2026.html`). The file MUST be saved under the `coco_cost_analyzer/reports/` folder only.
 
 ---
 
@@ -184,7 +189,7 @@ const TOKEN_TYPE_COLORS = {
 
 Return ONLY raw HTML. No markdown fences. No explanation. Fully self-contained, immediately renderable in any browser.
 
-The generated HTML file MUST be saved to: `Coco_Cost_Analyzer/Reports/COCO-COST-ANALYTICS-DD-MM-YYYY.html` (DD-MM-YYYY = current date). Always write the file under the `Coco_Cost_Analyzer/Reports/` folder.
+The generated HTML file MUST be saved to: `coco_cost_analyzer/reports/COCO-COST-ANALYTICS-DD-MM-YYYY.html` (DD-MM-YYYY = current date). Always write the file under the `coco_cost_analyzer/reports/` folder.
 
 | Scenario | Behaviour |
 |---|---|
