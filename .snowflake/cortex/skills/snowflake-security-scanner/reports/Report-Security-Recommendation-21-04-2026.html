@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Security Recommendations — 21-04-2026</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--accent:#38bdf8;--warn:#f59e0b;--crit:#ef4444;--good:#22c55e;--text:#e2e8f0;--muted:#94a3b8;--white:#f8fafc}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px}
+.banner{background:linear-gradient(135deg,#9333ea,#6366f1);border-radius:12px;padding:24px 32px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.banner h1{font-size:1.5rem;color:var(--white)}.banner .meta{display:flex;gap:16px;flex-wrap:wrap}.banner .meta span{background:rgba(255,255,255,.15);padding:6px 14px;border-radius:8px;font-size:.85rem;color:var(--white)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center}.sc .v{font-size:1.8rem;font-weight:700}.sc .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:2px}
+h2{font-size:1.15rem;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:.83rem}th{background:var(--card);text-align:left;padding:8px 12px;border-bottom:2px solid var(--border);color:var(--accent);font-weight:600}td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.s{display:inline-block;padding:2px 10px;border-radius:6px;font-size:.74rem;font-weight:600}.s-p0{background:rgba(239,68,68,.15);color:var(--crit)}.s-p1{background:rgba(245,158,11,.15);color:var(--warn)}.s-p2{background:rgba(56,189,248,.15);color:var(--accent)}.s-p3{background:rgba(34,197,94,.15);color:var(--good)}
+.rc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:12px}.rc h4{margin-bottom:6px}
+.tag{display:inline-block;background:rgba(56,189,248,.12);color:var(--accent);padding:2px 7px;border-radius:4px;font-size:.72rem;margin-right:4px}
+pre{background:#0b1120;border:1px solid var(--border);border-radius:8px;padding:10px;margin:6px 0;overflow-x:auto;font-size:.78rem;font-family:'Cascadia Code',Consolas,monospace;color:#93c5fd}
+.warn-box{background:rgba(245,158,11,.08);border-left:3px solid var(--warn);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:.82rem}
+.info-box{background:rgba(56,189,248,.06);border-left:3px solid var(--accent);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:.82rem}
+footer{margin-top:32px;text-align:center;color:var(--muted);font-size:.74rem}
+@media print{body{background:#fff;color:#1e293b}.banner{-webkit-print-color-adjust:exact}.rc{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<div class="banner">
+<div><h1>Security Recommendations</h1>
+<p style="color:rgba(255,255,255,.8);font-size:.86rem">Source: Report-Security-Assessment-21-04-2026.html</p></div>
+<div class="meta"><span>21 Apr 2026</span><span>Phase 2: ~25 sec</span></div>
+</div>
+
+<div class="cards">
+<div class="sc"><div class="v" style="color:var(--crit)">12</div><div class="l">Recommendations</div></div>
+<div class="sc"><div class="v" style="color:var(--crit)">2</div><div class="l">P0 Critical</div></div>
+<div class="sc"><div class="v" style="color:var(--warn)">4</div><div class="l">P1 High</div></div>
+<div class="sc"><div class="v" style="color:var(--accent)">5</div><div class="l">P2 Medium</div></div>
+<div class="sc"><div class="v" style="color:var(--good)">1</div><div class="l">P3 Low</div></div>
+</div>
+
+<h2>Priority Summary</h2>
+<table>
+<tr><th>Priority</th><th>SLA</th><th>ID</th><th>Recommendation</th><th>Finding</th><th>Effort</th></tr>
+<tr><td><span class="s s-p0">P0</span></td><td>24 hrs</td><td>R1</td><td>Enable data exfiltration prevention</td><td>EXFIL_PREVENTION_DISABLED</td><td>Low</td></tr>
+<tr><td><span class="s s-p0">P0</span></td><td>24 hrs</td><td>R2</td><td>Enable Trust Center & all scanner packages</td><td>TRUST_CENTER_NOT_ENABLED</td><td>Low</td></tr>
+<tr><td><span class="s s-p1">P1</span></td><td>7 days</td><td>R3</td><td>Create enterprise password policy</td><td>NO_PASSWORD_POLICY</td><td>Low</td></tr>
+<tr><td><span class="s s-p1">P1</span></td><td>7 days</td><td>R4</td><td>Create session policies</td><td>NO_SESSION_POLICY</td><td>Low</td></tr>
+<tr><td><span class="s s-p1">P1</span></td><td>7 days</td><td>R5</td><td>Create restrictive network policy</td><td>NO_NETWORK_POLICY</td><td>Medium</td></tr>
+<tr><td><span class="s s-p1">P1</span></td><td>7 days</td><td>R6</td><td>Enforce MFA for all password logins</td><td>PASSWORD_LOGIN_NO_MFA</td><td>Low</td></tr>
+<tr><td><span class="s s-p2">P2</span></td><td>30 days</td><td>R7</td><td>Separate admin roles</td><td>MULTI_ADMIN_ROLES</td><td>Medium</td></tr>
+<tr><td><span class="s s-p2">P2</span></td><td>30 days</td><td>R8</td><td>Enable periodic data rekeying</td><td>PERIODIC_REKEYING_OFF</td><td>Low</td></tr>
+<tr><td><span class="s s-p2">P2</span></td><td>30 days</td><td>R9</td><td>Implement data masking policies</td><td>NO_MASKING_POLICIES</td><td>Medium</td></tr>
+<tr><td><span class="s s-p2">P2</span></td><td>30 days</td><td>R10</td><td>Implement row-access policies</td><td>NO_ROW_ACCESS_POLICIES</td><td>Medium</td></tr>
+<tr><td><span class="s s-p2">P2</span></td><td>30 days</td><td>R11</td><td>Evaluate Private Link</td><td>PUBLIC_IP_ACCESS</td><td>High</td></tr>
+<tr><td><span class="s s-p3">P3</span></td><td>90 days</td><td>R12</td><td>Clean up 9 orphaned roles</td><td>ORPHANED_ROLES</td><td>Low</td></tr>
+</table>
+
+<h2>Detailed Recommendations</h2>
+
+<div class="rc">
+<h4><span class="s s-p0">P0</span> R1: Enable data exfiltration prevention</h4>
+<p><span class="tag">EXFIL_PREVENTION_DISABLED</span><span class="tag">Effort: Low</span></p>
+<pre>ALTER ACCOUNT SET PREVENT_UNLOAD_TO_INLINE_URL = TRUE;
+ALTER ACCOUNT SET PREVENT_LOAD_FROM_INLINE_URL = TRUE;
+ALTER ACCOUNT SET REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_CREATION = TRUE;
+ALTER ACCOUNT SET REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_OPERATION = TRUE;</pre>
+<div class="warn-box"><b>Risk:</b> Existing COPY INTO workflows using inline URLs will break. Audit QUERY_HISTORY first.</div>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p0">P0</span> R2: Enable Trust Center & all scanner packages</h4>
+<p><span class="tag">TRUST_CENTER_NOT_ENABLED</span><span class="tag">Effort: Low</span></p>
+<p>Trust Center provides automated CIS Benchmark scanning, Security Essentials hygiene checks, and Threat Intelligence detection. Without it, no automated security scanning is running.</p>
+<p><b>Step 1 — Enable Trust Center</b> (via Snowsight UI):</p>
+<p>Navigate to <b>Monitoring → Trust Center</b> and click <b>Enable</b>. This requires ACCOUNTADMIN role.</p>
+<p><b>Step 2 — Enable all scanner packages:</b></p>
+<pre>CALL SNOWFLAKE.TRUST_CENTER.ENABLE_SCANNER_PACKAGE('SECURITY_ESSENTIALS');
+CALL SNOWFLAKE.TRUST_CENTER.ENABLE_SCANNER_PACKAGE('CIS_BENCHMARKS');
+CALL SNOWFLAKE.TRUST_CENTER.ENABLE_SCANNER_PACKAGE('THREAT_INTELLIGENCE');</pre>
+<p><b>Step 3 — Verify scanners are running:</b></p>
+<pre>SELECT scanner_package_name, scanner_name, is_enabled
+FROM SNOWFLAKE.TRUST_CENTER.SCANNER_PACKAGES_VIEW
+ORDER BY scanner_package_name;</pre>
+<div class="info-box"><b>Impact:</b> Once enabled, Trust Center will automatically surface findings for CIS controls, detect threats, and provide remediation guidance — covering many of the gaps identified in this assessment.</div>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p1">P1</span> R3: Create enterprise password policy</h4>
+<p><span class="tag">NO_PASSWORD_POLICY</span><span class="tag">Effort: Low</span></p>
+<pre>CREATE OR REPLACE PASSWORD POLICY enterprise_password_policy
+    PASSWORD_MIN_LENGTH = 14 PASSWORD_MAX_LENGTH = 256
+    PASSWORD_MIN_UPPER_CASE_CHARS = 2 PASSWORD_MIN_LOWER_CASE_CHARS = 2
+    PASSWORD_MIN_NUMERIC_CHARS = 2 PASSWORD_MIN_SPECIAL_CHARS = 2
+    PASSWORD_MIN_AGE_DAYS = 1 PASSWORD_MAX_AGE_DAYS = 90
+    PASSWORD_MAX_RETRIES = 5 PASSWORD_LOCKOUT_TIME_MINS = 30
+    PASSWORD_HISTORY = 12
+    COMMENT = 'Enterprise password policy';
+ALTER ACCOUNT SET PASSWORD POLICY = enterprise_password_policy;</pre>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p1">P1</span> R4: Create session policies</h4>
+<p><span class="tag">NO_SESSION_POLICY</span><span class="tag">Effort: Low</span></p>
+<pre>CREATE OR REPLACE SESSION POLICY standard_session_policy
+    SESSION_IDLE_TIMEOUT_MINS = 60 SESSION_UI_IDLE_TIMEOUT_MINS = 30
+    COMMENT = 'Standard - 60 min idle, 30 min UI idle';
+ALTER ACCOUNT SET SESSION POLICY = standard_session_policy;</pre>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p1">P1</span> R5: Create restrictive network policy</h4>
+<p><span class="tag">NO_NETWORK_POLICY</span><span class="tag">Effort: Medium</span></p>
+<p>Step 1 — Identify legitimate IPs from login history. Step 2 — Create allowlist:</p>
+<pre>CREATE OR REPLACE NETWORK POLICY corporate_network_policy
+    ALLOWED_IP_LIST = ('&lt;your_office_ip&gt;/32', '&lt;your_vpn_ip&gt;/32')
+    COMMENT = 'Restrictive corporate network policy';</pre>
+<p>Step 3 — Test on one user, then apply account-wide:</p>
+<pre>ALTER USER RAJIVGUPTA780184 SET NETWORK_POLICY = corporate_network_policy;
+-- After validation:
+ALTER ACCOUNT SET NETWORK_POLICY = corporate_network_policy;</pre>
+<div class="warn-box"><b>Risk:</b> If current IP not in allowlist, you'll be locked out. Always include your current IP.</div>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p1">P1</span> R6: Enforce MFA for all password logins</h4>
+<p><span class="tag">PASSWORD_LOGIN_NO_MFA</span><span class="tag">Effort: Low</span></p>
+<pre>CREATE OR REPLACE AUTHENTICATION POLICY enforce_mfa_policy
+    MFA_ENROLLMENT = 'REQUIRED'
+    MFA_AUTHENTICATION_METHODS = ('TOTP')
+    CLIENT_TYPES = ('SNOWFLAKE_UI', 'SNOWSIGHT', 'DRIVERS', 'SNOWSQL')
+    AUTHENTICATION_METHODS = ('PASSWORD', 'SAML')
+    COMMENT = 'Requires MFA for all password logins';
+ALTER ACCOUNT SET AUTHENTICATION POLICY = enforce_mfa_policy;</pre>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p2">P2</span> R7: Separate admin roles</h4>
+<p><span class="tag">MULTI_ADMIN_ROLES</span><span class="tag">Effort: Medium</span></p>
+<pre>CREATE ROLE IF NOT EXISTS PLATFORM_ADMIN_ROLE;
+GRANT ROLE SYSADMIN TO ROLE PLATFORM_ADMIN_ROLE;
+GRANT ROLE PLATFORM_ADMIN_ROLE TO USER RAJIVGUPTA780184;
+ALTER USER RAJIVGUPTA780184 SET DEFAULT_ROLE = 'PLATFORM_ADMIN_ROLE';</pre>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p2">P2</span> R8: Enable periodic data rekeying (CIS 4.9)</h4>
+<p><span class="tag">PERIODIC_REKEYING_OFF</span><span class="tag">Effort: Low</span></p>
+<pre>ALTER ACCOUNT SET PERIODIC_DATA_REKEYING = TRUE;</pre>
+<div class="info-box">This ensures data encrypted more than one year ago is re-encrypted with newer keys. No impact on query performance.</div>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p2">P2</span> R9: Implement data masking policies (CIS 4.10)</h4>
+<p><span class="tag">NO_MASKING_POLICIES</span><span class="tag">Effort: Medium</span></p>
+<pre>-- Example: email masking
+CREATE OR REPLACE MASKING POLICY pii_email_mask AS (val STRING) RETURNS STRING ->
+    CASE WHEN CURRENT_ROLE() IN ('DATA_ADMIN', 'ACCOUNTADMIN') THEN val
+         ELSE REGEXP_REPLACE(val, '.+@', '****@') END;
+
+-- Apply to sensitive columns:
+ALTER TABLE &lt;DB&gt;.&lt;SCHEMA&gt;.&lt;TABLE&gt; MODIFY COLUMN EMAIL SET MASKING POLICY pii_email_mask;</pre>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p2">P2</span> R10: Implement row-access policies (CIS 4.11)</h4>
+<p><span class="tag">NO_ROW_ACCESS_POLICIES</span><span class="tag">Effort: Medium</span></p>
+<pre>-- Example: department-based row filtering
+CREATE OR REPLACE ROW ACCESS POLICY dept_row_filter AS (dept_col VARCHAR) RETURNS BOOLEAN ->
+    CURRENT_ROLE() IN ('ACCOUNTADMIN') OR dept_col = CURRENT_ROLE();
+
+ALTER TABLE &lt;DB&gt;.&lt;SCHEMA&gt;.&lt;TABLE&gt; ADD ROW ACCESS POLICY dept_row_filter ON (DEPARTMENT);</pre>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p2">P2</span> R11: Evaluate Private Link</h4>
+<p><span class="tag">PUBLIC_IP_ACCESS</span><span class="tag">Effort: High</span></p>
+<pre>SELECT SYSTEM$GET_PRIVATELINK_CONFIG();</pre>
+<p>Network infrastructure project — coordinate with cloud team. Timeline: 2–4 weeks.</p>
+</div>
+
+<div class="rc">
+<h4><span class="s s-p3">P3</span> R12: Clean up 9 orphaned roles</h4>
+<p><span class="tag">ORPHANED_ROLES</span><span class="tag">Effort: Low</span></p>
+<pre>DROP ROLE IF EXISTS ENGINEER;
+DROP ROLE IF EXISTS MONEY;
+DROP ROLE IF EXISTS DEVELOPER;
+DROP ROLE IF EXISTS _DEVELOPER;
+DROP ROLE IF EXISTS READER;
+DROP ROLE IF EXISTS ADMINISTRATOR;
+DROP ROLE IF EXISTS CURRENCY;
+-- PRIVACY_USER appears twice — investigate before dropping</pre>
+</div>
+
+<h2>Rollback Procedures</h2>
+<pre>ALTER ACCOUNT UNSET PASSWORD POLICY;
+ALTER ACCOUNT UNSET SESSION POLICY;
+ALTER ACCOUNT UNSET NETWORK_POLICY;
+ALTER ACCOUNT UNSET AUTHENTICATION POLICY;
+ALTER ACCOUNT SET PREVENT_UNLOAD_TO_INLINE_URL = FALSE;
+ALTER ACCOUNT SET REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_CREATION = FALSE;
+ALTER ACCOUNT SET PERIODIC_DATA_REKEYING = FALSE;</pre>
+
+<div class="warn-box"><b>REMINDER:</b> This phase is documentation only. No changes applied. Review all commands before executing.</div>
+<footer>Snowflake Security Scanner | Phase 2 | 21 April 2026 | Source: Phase 1 Assessment</footer>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Security Assessment — 21-04-2026</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--accent:#38bdf8;--warn:#f59e0b;--crit:#ef4444;--good:#22c55e;--text:#e2e8f0;--muted:#94a3b8;--white:#f8fafc;--purple:#a78bfa}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px}
+.banner{background:linear-gradient(135deg,#dc2626,#9333ea);border-radius:12px;padding:24px 32px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.banner h1{font-size:1.5rem;color:var(--white)}.banner .meta{display:flex;gap:16px;flex-wrap:wrap}.banner .meta span{background:rgba(255,255,255,.15);padding:6px 14px;border-radius:8px;font-size:.85rem;color:var(--white)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}.sc .v{font-size:1.9rem;font-weight:700}.sc .l{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin-top:2px}
+h2{font-size:1.15rem;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}h3{font-size:.95rem;margin:14px 0 6px;color:var(--accent)}
+table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:.83rem}th{background:var(--card);text-align:left;padding:8px 12px;border-bottom:2px solid var(--border);color:var(--accent);font-weight:600}td{padding:8px 12px;border-bottom:1px solid var(--border)}tr:hover td{background:rgba(56,189,248,.03)}
+.s{display:inline-block;padding:2px 10px;border-radius:6px;font-size:.74rem;font-weight:600}.s-c{background:rgba(239,68,68,.15);color:var(--crit)}.s-h{background:rgba(245,158,11,.15);color:var(--warn)}.s-m{background:rgba(56,189,248,.15);color:var(--accent)}.s-l{background:rgba(34,197,94,.15);color:var(--good)}.s-n{background:rgba(148,163,184,.15);color:var(--muted)}
+.fc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px}.fc h4{margin-bottom:5px}
+.ok{background:rgba(34,197,94,.08);border-left:3px solid var(--good);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:.83rem}
+.warn-box{background:rgba(245,158,11,.08);border-left:3px solid var(--warn);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:.83rem}
+.crit-box{background:rgba(239,68,68,.06);border-left:3px solid var(--crit);padding:8px 14px;border-radius:0 8px 8px 0;margin:8px 0;font-size:.83rem}
+.tag{display:inline-block;background:rgba(56,189,248,.12);color:var(--accent);padding:2px 7px;border-radius:4px;font-size:.72rem;margin-right:4px}
+footer{margin-top:32px;text-align:center;color:var(--muted);font-size:.74rem}
+@media print{body{background:#fff;color:#1e293b}.banner{-webkit-print-color-adjust:exact}}
+</style>
+</head>
+<body>
+
+<div class="banner">
+<div><h1>Snowflake Security Assessment Report</h1>
+<p style="color:rgba(255,255,255,.8);font-size:.86rem">Account: <b>jc99050</b> | Role: ACCOUNTADMIN | User: RAJIVGUPTA780184</p></div>
+<div class="meta"><span>21 Apr 2026</span><span>Phase 1: ~55 sec</span><span>12 Domains Scanned</span></div>
+</div>
+
+<div class="cards">
+<div class="sc"><div class="v" style="color:var(--crit)">18</div><div class="l">Total Findings</div></div>
+<div class="sc"><div class="v" style="color:var(--crit)">2</div><div class="l">Critical</div></div>
+<div class="sc"><div class="v" style="color:var(--warn)">5</div><div class="l">High</div></div>
+<div class="sc"><div class="v" style="color:var(--accent)">6</div><div class="l">Medium</div></div>
+<div class="sc"><div class="v" style="color:var(--good)">1</div><div class="l">Low</div></div>
+<div class="sc"><div class="v" style="color:var(--good)">8</div><div class="l">Passed Checks</div></div>
+<div class="sc"><div class="v" style="color:var(--muted)">4</div><div class="l">Skipped (Trust Center N/A)</div></div>
+</div>
+
+<h2>Master Findings Table</h2>
+<table>
+<tr><th>#</th><th>ID</th><th>Domain</th><th>Severity</th><th>Finding</th><th>Affected</th></tr>
+<tr><td>1</td><td>EXFIL_PREVENTION_DISABLED</td><td>5 — Data Exfil</td><td><span class="s s-c">CRITICAL</span></td><td>All 5 exfiltration prevention parameters = FALSE</td><td>Account-wide</td></tr>
+<tr><td>2</td><td>TRUST_CENTER_NOT_ENABLED</td><td>11 — Trust Center</td><td><span class="s s-c">CRITICAL</span></td><td>Trust Center not enabled — no automated security scanning</td><td>Account-wide</td></tr>
+<tr><td>3</td><td>NO_PASSWORD_POLICY</td><td>7 — Policies</td><td><span class="s s-h">HIGH</span></td><td>No password policy — no complexity or rotation enforcement</td><td>Account-wide</td></tr>
+<tr><td>4</td><td>NO_SESSION_POLICY</td><td>7 — Policies</td><td><span class="s s-h">HIGH</span></td><td>No session policy — sessions persist indefinitely</td><td>Account-wide</td></tr>
+<tr><td>5</td><td>NO_NETWORK_POLICY</td><td>7 — Network</td><td><span class="s s-h">HIGH</span></td><td>No network policies — account open from any IP</td><td>7 public IPs, 3 users</td></tr>
+<tr><td>6</td><td>PUBLIC_IP_ACCESS</td><td>6 — Private Link</td><td><span class="s s-h">HIGH</span></td><td>100% logins from public IPs, no Private Link</td><td>33 logins, 7 IPs</td></tr>
+<tr><td>7</td><td>MULTI_ADMIN_ROLES</td><td>9 — RBAC</td><td><span class="s s-h">HIGH</span></td><td>User holds ACCOUNTADMIN + ORGADMIN</td><td>RAJIVGUPTA780184</td></tr>
+<tr><td>8</td><td>PASSWORD_LOGIN_NO_MFA</td><td>4 — Auth</td><td><span class="s s-m">MEDIUM</span></td><td>3 users logged in with password but no MFA second factor</td><td>COCO_CLI, RAJIVGUPTA780184, COCO_SNOWSIGHT</td></tr>
+<tr><td>9</td><td>PERIODIC_REKEYING_OFF</td><td>12 — CIS 4.9</td><td><span class="s s-m">MEDIUM</span></td><td>PERIODIC_DATA_REKEYING = FALSE</td><td>Account-wide</td></tr>
+<tr><td>10</td><td>NO_MASKING_POLICIES</td><td>12 — CIS 4.10</td><td><span class="s s-m">MEDIUM</span></td><td>Zero masking policies — no column-level data protection</td><td>Account-wide</td></tr>
+<tr><td>11</td><td>NO_ROW_ACCESS_POLICIES</td><td>12 — CIS 4.11</td><td><span class="s s-m">MEDIUM</span></td><td>Zero row-access policies — no row-level security</td><td>Account-wide</td></tr>
+<tr><td>12</td><td>ALL_PASSWORD_ONLY</td><td>4 — Auth</td><td><span class="s s-m">MEDIUM</span></td><td>100% of users are Password Only — no key-pair or SSO</td><td>1 user</td></tr>
+<tr><td>13</td><td>SINGLE_AUTH_POLICY</td><td>7 — Policies</td><td><span class="s s-m">MEDIUM</span></td><td>Only 1 auth policy (PAT_AUTH_POLICY) exists — no broad MFA enforcement policy</td><td>Account-wide</td></tr>
+<tr><td>14</td><td>ORPHANED_ROLES</td><td>9 — RBAC</td><td><span class="s s-l">LOW</span></td><td>9 orphaned roles with no users or parent roles</td><td>ENGINEER, MONEY, DEVELOPER, _DEVELOPER, READER, PRIVACY_USER(×2), ADMINISTRATOR, CURRENCY</td></tr>
+</table>
+
+<h2>Domain Details</h2>
+
+<h3>Domain 1 — User Security & MFA</h3>
+<div class="ok"><b>PASS:</b> MFA coverage = <b>100%</b> (1/1 password users). No ACCOUNTADMIN without MFA.</div>
+
+<h3>Domain 2 — Inactive & Stale Accounts</h3>
+<div class="ok"><b>PASS:</b> No inactive users (90+ days). No stale passwords. All passwords fresh (0–30 days).</div>
+
+<h3>Domain 3 — Failed Authentication</h3>
+<div class="ok"><b>PASS:</b> No brute force patterns (no user+IP with 5+ failures in 7 days).</div>
+
+<h3>Domain 4 — Authentication Methods</h3>
+<div class="fc"><h4><span class="s s-m">MEDIUM</span> 100% Password-Only auth, password logins without MFA</h4>
+<table><tr><th>First Factor</th><th>Second Factor</th><th>Logins</th><th>Users</th></tr>
+<tr><td>OAUTH_ACCESS_TOKEN</td><td>—</td><td>20</td><td>1</td></tr>
+<tr><td>PASSWORD</td><td>TOTP (MFA)</td><td>9</td><td>1</td></tr>
+<tr><td>PASSWORD</td><td>None</td><td>4</td><td>3</td></tr></table>
+<p>3 users authenticated with password but no MFA second factor. Auth policy PAT_AUTH_POLICY covers PAT tokens only.</p></div>
+
+<h3>Domain 5 — Data Exfiltration</h3>
+<div class="fc"><h4><span class="s s-c">CRITICAL</span> All exfiltration prevention parameters = FALSE</h4>
+<table><tr><th>Parameter</th><th>Value</th><th>Recommended</th></tr>
+<tr><td>PREVENT_UNLOAD_TO_INLINE_URL</td><td style="color:var(--crit)"><b>FALSE</b></td><td>TRUE</td></tr>
+<tr><td>PREVENT_LOAD_FROM_INLINE_URL</td><td style="color:var(--crit)"><b>FALSE</b></td><td>TRUE</td></tr>
+<tr><td>PREVENT_UNLOAD_TO_INTERNAL_STAGES</td><td style="color:var(--warn)"><b>FALSE</b></td><td>Consider TRUE</td></tr>
+<tr><td>REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_CREATION</td><td style="color:var(--crit)"><b>FALSE</b></td><td>TRUE</td></tr>
+<tr><td>REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_OPERATION</td><td style="color:var(--crit)"><b>FALSE</b></td><td>TRUE</td></tr></table>
+<p>No external stages found. No data export operations detected in last 30 days.</p></div>
+
+<h3>Domain 6 — Private Link</h3>
+<div class="fc"><h4><span class="s s-h">HIGH</span> 100% public IP access</h4>
+<p>All 33 successful logins from 7 unique public IPs, 3 users. No private IP connections detected.</p></div>
+
+<h3>Domain 7 — Network / Session / Password Policies</h3>
+<div class="fc"><h4><span class="s s-h">HIGH</span> No network policies</h4><p>Zero network policies — account open to any IP globally.</p></div>
+<div class="fc"><h4><span class="s s-h">HIGH</span> No password policy</h4><p>No complexity, rotation, or lockout enforcement.</p></div>
+<div class="fc"><h4><span class="s s-h">HIGH</span> No session policy</h4><p>Sessions can persist indefinitely — increased stolen-token exposure.</p></div>
+
+<h3>Domain 8 — Encryption</h3>
+<div class="ok"><b>PASS:</b> AES-256 encryption at rest (default). No sensitive-pattern tables found.</div>
+
+<h3>Domain 9 — RBAC</h3>
+<div class="fc"><h4><span class="s s-h">HIGH</span> Multiple admin roles</h4>
+<p>RAJIVGUPTA780184 holds ACCOUNTADMIN + ORGADMIN — separation of duties concern.</p></div>
+<div class="fc"><h4><span class="s s-l">LOW</span> 9 orphaned roles</h4>
+<p>ENGINEER, MONEY, DEVELOPER, _DEVELOPER, READER, PRIVACY_USER(×2), ADMINISTRATOR, CURRENCY</p></div>
+
+<h3>Domain 10 — Network Access</h3>
+<p>30-day summary: 7 unique IPs, 3 users, 33 logins — all public internet.</p>
+
+<h3>Domain 11 — Trust Center Integration</h3>
+<div class="crit-box"><b>CRITICAL: Trust Center is NOT enabled on this account.</b><br>
+All 8 Trust Center queries returned: <code>Object 'SNOWFLAKE.TRUST_CENTER.FINDINGS_VIEW' does not exist or not authorized</code>. Without Trust Center, there is no automated CIS Benchmark scanning, no Security Essentials scanner, and no Threat Intelligence detection.
+</div>
+
+<h3>Domain 12 — CIS Benchmark Extended Checks</h3>
+<div class="ok"><b>PASS:</b> ACCOUNTADMIN has email set. Default role is NOT ACCOUNTADMIN. No RSA key-pair users to rotate. No admin-owned tasks.</div>
+<div class="fc"><h4><span class="s s-m">MEDIUM</span> Periodic data rekeying disabled (CIS 4.9)</h4>
+<p>PERIODIC_DATA_REKEYING = FALSE. Data encrypted more than a year ago won't be re-encrypted with newer keys.</p></div>
+<div class="fc"><h4><span class="s s-m">MEDIUM</span> Zero masking policies (CIS 4.10)</h4>
+<p>No column-level data masking policies exist. If sensitive data is added, there's no protection layer.</p></div>
+<div class="fc"><h4><span class="s s-m">MEDIUM</span> Zero row-access policies (CIS 4.11)</h4>
+<p>No row-level security policies exist.</p></div>
+<p>Data retention: No user tables with retention = 0 or > 7 found.</p>
+
+<h2>Self-Healing Summary</h2>
+<table>
+<tr><th>Query</th><th>Error</th><th>Fix</th><th>Outcome</th></tr>
+<tr><td>D11.1–D11.8 (Trust Center)</td><td>TRUST_CENTER.FINDINGS_VIEW does not exist</td><td>Trust Center not enabled on account — flagged as CRITICAL finding</td><td>SKIPPED — Manual action required</td></tr>
+<tr><td>D12.4: Tasks via ACCOUNT_USAGE.TASKS</td><td>Object does not exist</td><td>Used SHOW TASKS IN ACCOUNT instead</td><td>SUCCESS (0 tasks found)</td></tr>
+<tr><td>D12.6: Row-access REF_TABLE_NAME</td><td>invalid identifier</td><td>Removed column, used COUNT(DISTINCT POLICY_NAME) only</td><td>SUCCESS (0 policies)</td></tr>
+</table>
+
+<footer>Snowflake Security Scanner | 12 Domains | 21 April 2026 | Assessment Only — No changes applied</footer>
+</body>
+</html>
