@@ -1,15 +1,35 @@
 ---
 name: coco-cost-analyzer
-description: Generate a self-contained HTML dashboard for Snowflake Cortex Code (CoCo) usage across Snowsight and CLI, covering Tokens, Token Credits, per-model granular breakdown, and credit-cost trends. Triggers: CoCo cost, Cortex Code usage, CoCo analytics, CoCo dashboard, CoCo report, token usage, token credits, CLI usage, Snowsight usage, CoCo spending, Cortex Code cost analysis.
+description: "Generate a self-contained HTML dashboard for Snowflake Cortex Code (CoCo) usage across Snowsight and CLI, covering Tokens, Token Credits, per-model granular breakdown, and credit-cost trends. Triggers: CoCo cost, Cortex Code usage, CoCo analytics, CoCo dashboard, CoCo report, token usage, token credits, CLI usage, Snowsight usage, CoCo spending, Cortex Code cost analysis, scan account, scan my account, analyze coco, coco scan."
+author: Rajiv Gupta
+linkedin: https://www.linkedin.com/in/rajiv-gupta-618b0228/
 ---
 
 # CoCo Usage Analytics — Cortex Code Skill Prompt
 
-**Version:** 5.1.0
+**Version:** 6.0.0
+
+> **MANDATORY EXECUTION CONTRACT**: When this skill is invoked, the agent MUST follow every numbered step below in exact order. Skipping, reordering, or summarizing steps is a VIOLATION. The agent MUST use the pre-flight checklist (Section 9) to self-verify before delivering the report.
 
 Generate a self-contained HTML dashboard for Snowflake Cortex Code (CoCo) usage across Snowsight and CLI, covering: Tokens, Token Credits, per-model granular breakdown, and credit-cost trends. Uses ONLY real data from Snowflake ACCOUNT_USAGE views — no dummy or sample data.
 
-**Output filename:** `coco_cost_analyzer/reports/COCO-COST-ANALYTICS-DD-MM-YYYY.html` where DD-MM-YYYY is the current date (e.g. `coco_cost_analyzer/reports/COCO-COST-ANALYTICS-24-03-2026.html`). The file MUST be saved under the `coco_cost_analyzer/reports/` folder only.
+**Output filename:** `coco-cost-analyzer/reports/COCO-COST-ANALYTICS-DD-MM-YYYY.html` where DD-MM-YYYY is the current date. The file MUST be saved under the `coco-cost-analyzer/reports/` folder ONLY.
+
+---
+
+## EXECUTION ORDER (MANDATORY — DO NOT SKIP OR REORDER)
+
+```
+STEP 1 → Run Snowsight SQL query (Section 2)
+STEP 2 → Run CLI SQL query (Section 2)
+STEP 3 → Run User lookup query (Section 2)
+STEP 4 → Embed query results as JS arrays (Section 6)
+STEP 5 → Generate HTML file matching EXACT layout (Section 3)
+STEP 6 → Verify against pre-flight checklist (Section 9)
+STEP 7 → Save file to correct path (Section 7)
+```
+
+**CRITICAL: Steps 1-3 MUST be executed as actual SQL queries against Snowflake. Do NOT fabricate, estimate, or assume any data values.**
 
 ---
 
@@ -47,36 +67,40 @@ Each key is a model name. Each value object has four fields: `input`, `output`, 
 
 ---
 
-## 2. SQL Queries
+## 2. SQL Queries (MUST BE EXECUTED — NOT SKIPPED)
 
-Run these to get data for the dashboard. The dashboard must embed the **results** as JS arrays.
-
-### Snowsight Usage
+**STEP 1 — Snowsight query:**
 ```sql
 SELECT
     DATE_TRUNC('DAY', h.USAGE_TIME)::DATE  AS USAGE_DATE,
     h.USER_ID,
     f.KEY                                  AS MODEL_NAME,
-    h.TOKENS                               AS TOTAL_TOKENS,
-    h.TOKEN_CREDITS                        AS TOTAL_TOKEN_CREDITS,
-    f.VALUE:"input"::NUMBER                AS INPUT_TOKENS,
-    f.VALUE:"output"::NUMBER               AS OUTPUT_TOKENS,
-    f.VALUE:"cache_read_input"::NUMBER     AS CACHE_READ_TOKENS,
-    f.VALUE:"cache_write_input"::NUMBER    AS CACHE_WRITE_TOKENS,
-    c.VALUE:"input"::FLOAT                 AS INPUT_CREDITS,
-    c.VALUE:"output"::FLOAT                AS OUTPUT_CREDITS,
-    c.VALUE:"cache_read_input"::FLOAT      AS CACHE_READ_CREDITS,
-    c.VALUE:"cache_write_input"::FLOAT     AS CACHE_WRITE_CREDITS
+    SUM(h.TOKENS)                          AS TOTAL_TOKENS,
+    SUM(h.TOKEN_CREDITS)                   AS TOTAL_TOKEN_CREDITS,
+    SUM(f.VALUE:"input"::NUMBER)           AS INPUT_TOKENS,
+    SUM(f.VALUE:"output"::NUMBER)          AS OUTPUT_TOKENS,
+    SUM(f.VALUE:"cache_read_input"::NUMBER) AS CACHE_READ_TOKENS,
+    SUM(f.VALUE:"cache_write_input"::NUMBER) AS CACHE_WRITE_TOKENS,
+    SUM(c.VALUE:"input"::FLOAT)            AS INPUT_CREDITS,
+    SUM(c.VALUE:"output"::FLOAT)           AS OUTPUT_CREDITS,
+    SUM(c.VALUE:"cache_read_input"::FLOAT) AS CACHE_READ_CREDITS,
+    SUM(c.VALUE:"cache_write_input"::FLOAT) AS CACHE_WRITE_CREDITS
 FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_CODE_SNOWSIGHT_USAGE_HISTORY h,
      LATERAL FLATTEN(INPUT => h.TOKENS_GRANULAR) f,
      LATERAL FLATTEN(INPUT => h.CREDITS_GRANULAR) c
 WHERE f.KEY = c.KEY
   AND h.USAGE_TIME >= DATEADD('DAY', -90, CURRENT_TIMESTAMP())
+GROUP BY 1, 2, 3
 ORDER BY 1 DESC;
 ```
 
-### CLI Usage
-Same query but replace `CORTEX_CODE_SNOWSIGHT_USAGE_HISTORY` with `CORTEX_CODE_CLI_USAGE_HISTORY`.
+**STEP 2 — CLI query:** Same query but replace `CORTEX_CODE_SNOWSIGHT_USAGE_HISTORY` with `CORTEX_CODE_CLI_USAGE_HISTORY`.
+
+**STEP 3 — User lookup:** Resolve USER_ID to usernames.
+```sql
+SELECT USER_ID, NAME FROM SNOWFLAKE.ACCOUNT_USAGE.USERS
+WHERE USER_ID IN (<comma-separated list of all distinct USER_IDs from Steps 1 and 2>);
+```
 
 ### Column Mapping (SQL -> JS)
 | SQL Column | JS Property | SQL Column | JS Property |
@@ -91,43 +115,54 @@ Same query but replace `CORTEX_CODE_SNOWSIGHT_USAGE_HISTORY` with `CORTEX_CODE_C
 
 ---
 
-## 3. Dashboard Layout
+## 3. Dashboard Layout (EXACT — DO NOT DEVIATE)
 
-Single self-contained HTML file. TWO primary tabs: **CLI** and **Snowsight**. Switching tabs swaps data source but keeps selected date range.
+Single self-contained HTML file. **TWO primary tabs: CLI and Snowsight.** Switching tabs swaps data source but keeps selected date range. Each tab shows its own KPIs, charts, and table using ONLY that tab's data.
 
 ```
 +======================================================================+
 |  CoCo Usage Analytics                                                |
 +======================================================================+
-|  [7D] [15D] [30D] [45D] [60D] [90D] [Custom]                        |
+|  [ CLI ]  [ Snowsight ]           [7D] [15D] [30D] [45D] [60D] [90D] [Custom]
 +----------------------------------------------------------------------+
-|  [ CLI ]  [ Snowsight ]                                              |
+|  KPI Cards (8 cards in a row):                                       |
+|  Total Tokens | Token Credits | Input Tokens | Output Tokens |       |
+|  Cache Read | Cache Write | Total Credits | Top Model                |
 +----------------------------------------------------------------------+
-|  KPI Cards: Total Tokens | Token Credits | Input Tokens |            |
-|  Output Tokens | Cache Read | Cache Write | Total Credits | Top Model|
+|  Chart 1 — Token Usage Over Time (line chart, total tokens by day)   |
 +----------------------------------------------------------------------+
-|  Section 1 — Token Usage Over Time                                   |
-|  Line chart (total tokens by day) + Stacked bar (input, output,      |
-|  cache_read, cache_write tokens by day)                              |
+|  Chart 2 — Token Type Breakdown (stacked bar: input, output,         |
+|            cache_read, cache_write tokens by day)                     |
 +----------------------------------------------------------------------+
-|  Section 2 — Token Credits Over Time                                 |
-|  Filled area chart: total token credits by day                       |
+|  Chart 3 — Token Credits Over Time (filled area chart by day)        |
 +----------------------------------------------------------------------+
-|  Section 3 — Credit Breakdown by Token Type                          |
-|  Stacked bar: inputCredits, outputCredits, cacheReadCredits,         |
-|  cacheWriteCredits by day                                            |
+|  Chart 4 — Credit Breakdown by Token Type (stacked bar:              |
+|            inputCredits, outputCredits, cacheReadCredits,             |
+|            cacheWriteCredits by day)                                  |
 +----------------------------------------------------------------------+
-|  Section 4 — Model Usage Comparison                                  |
-|  Grouped bar chart: one series per model, tokens by day              |
+|  Chart 5 — Model Usage Comparison (grouped bar: one series per       |
+|            model, tokens by day)                                      |
 +----------------------------------------------------------------------+
-|  Section 5 — Per-User Token Consumption                              |
-|  Horizontal bar: total tokens per USER_ID, sorted descending         |
+|  Chart 6 — Per-User Token Consumption (horizontal bar: total tokens  |
+|            per user, sorted descending. Use resolved usernames.)      |
 +----------------------------------------------------------------------+
-|  Section 6 — Usage Detail Table                                      |
+|  Usage Detail Table                                                   |
 |  Date | User | Model | Total Tokens | Input | Output |               |
-|  Cache Read | Cache Write | Token Credits | Total Credits            |
+|  Cache Read | Cache Write | Token Credits | Total Credits             |
 +----------------------------------------------------------------------+
 ```
+
+### MANDATORY DASHBOARD REQUIREMENTS:
+- [ ] Exactly **2 tabs**: CLI and Snowsight (not combined, not merged)
+- [ ] Tabs switch data source; date range persists across tab switches
+- [ ] Exactly **8 KPI cards** visible at all times
+- [ ] Exactly **6 charts** using Chart.js (types specified above)
+- [ ] Exactly **1 detail table** with all columns listed above
+- [ ] **Date range picker** with 7 buttons: 7D, 15D, 30D (default), 45D, 60D, 90D, Custom
+- [ ] Custom range reveals From/To date inputs + Apply button
+- [ ] ALL charts, KPIs, and table re-filter when date range changes
+- [ ] Per-User chart (Chart 6) MUST show resolved usernames, NOT numeric USER_IDs
+- [ ] User lookup map embedded as: `const USERS = {<userId>: '<username>', ...};`
 
 ---
 
@@ -137,7 +172,7 @@ Presets: 7D, 15D, **30D** (default), 45D, 60D, 90D, Custom.
 
 When Custom is selected: reveal two `<input type="date">` fields (From / To) and an Apply button. On Apply, re-filter ALL charts, KPIs, and detail table.
 
-Active button colour matches tab accent: CLI = amber (#F5A623), Snowsight = green (#48D7A4).
+Active button colour MUST match tab accent: CLI = amber (#F5A623), Snowsight = green (#48D7A4).
 
 ```javascript
 function filterByRange(rows, days, fromDate, toDate) {
@@ -150,14 +185,14 @@ function filterByRange(rows, days, fromDate, toDate) {
 
 ---
 
-## 5. Visual Design
+## 5. Visual Design (MANDATORY — USE THESE EXACT VALUES)
 
 | Item | Value |
 |---|---|
-| Charts | Chart.js 4.4.1 via cdnjs.cloudflare.com |
+| Charts | Chart.js 4.4.1 via `https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js` |
 | Fonts | Space Mono (code/labels), DM Sans (body/headings) via Google Fonts |
 | Background | 40x40px CSS grid at 3% opacity |
-| Output | Single self-contained HTML, no build step |
+| Output | Single self-contained HTML, no build step, no external data files |
 
 ```css
 :root {
@@ -177,134 +212,82 @@ const TOKEN_TYPE_COLORS = {
 
 ---
 
-## 6. Data Rules
+## 6. Data Embedding Rules (CRITICAL)
 
-- **NO dummy or sample data.** The dashboard must use ONLY real data queried from the Snowflake views listed in Section 1.
-- If a source (CLI or Snowsight) returns zero rows, show a "No data available" placeholder on that tab.
-- The data is queried at generation time via the SQL in Section 8 and embedded as JS arrays in the HTML.
+- **NO dummy or sample data.** The dashboard MUST use ONLY real data queried from Steps 1-3.
+- Query results from Step 1 → embed as `const sgData = [...]`
+- Query results from Step 2 → embed as `const cliData = [...]`
+- Query results from Step 3 → embed as `const USERS = {userId: 'username', ...}`
+- If a source (CLI or Snowsight) returns zero rows, embed as empty array `[]` and show "No data available" placeholder on that tab.
+- NULL or missing numeric values MUST default to `0` in the JS arrays.
 
 ---
 
 ## 7. Output Rules
 
-Return ONLY raw HTML. No markdown fences. No explanation. Fully self-contained, immediately renderable in any browser.
-
-The generated HTML file MUST be saved to: `coco_cost_analyzer/reports/COCO-COST-ANALYTICS-DD-MM-YYYY.html` (DD-MM-YYYY = current date). Always write the file under the `coco_cost_analyzer/reports/` folder.
+The generated HTML file MUST be saved to: `coco-cost-analyzer/reports/COCO-COST-ANALYTICS-DD-MM-YYYY.html` (DD-MM-YYYY = current date).
 
 | Scenario | Behaviour |
 |---|---|
 | Only CLI data | "No data available" placeholder on Snowsight tab |
 | Only Snowsight data | "No data available" placeholder on CLI tab |
-| Neither source has data | Show "No CoCo usage data found" message |
+| Neither source has data | Show "No CoCo usage data found" full-page message |
 | User specifies date range | Pre-set as active default |
 | Always | Fully self-contained — no external data files, no sample/dummy data |
 
 ---
 
-## 8. How to Run (SQL Only — No Setup Required)
+## 8. Interaction Rules
 
-Run this single SQL statement. It queries BOTH real usage views, aggregates the data as JSON, and passes it to Cortex to generate the HTML dashboard with your actual data embedded:
-
-```sql
-WITH sg_data AS (
-    SELECT ARRAY_AGG(OBJECT_CONSTRUCT(
-        'date', USAGE_DATE::VARCHAR,
-        'userId', USER_ID,
-        'model', MODEL_NAME,
-        'totalTokens', TOTAL_TOKENS,
-        'totalTokenCredits', TOTAL_TOKEN_CREDITS,
-        'inputTokens', INPUT_TOKENS,
-        'outputTokens', OUTPUT_TOKENS,
-        'cacheReadTokens', CACHE_READ_TOKENS,
-        'cacheWriteTokens', CACHE_WRITE_TOKENS,
-        'inputCredits', INPUT_CREDITS,
-        'outputCredits', OUTPUT_CREDITS,
-        'cacheReadCredits', CACHE_READ_CREDITS,
-        'cacheWriteCredits', CACHE_WRITE_CREDITS
-    )) AS DATA_JSON
-    FROM (
-        SELECT
-            DATE_TRUNC('DAY', h.USAGE_TIME)::DATE AS USAGE_DATE,
-            h.USER_ID,
-            f.KEY AS MODEL_NAME,
-            SUM(h.TOKENS) AS TOTAL_TOKENS,
-            SUM(h.TOKEN_CREDITS) AS TOTAL_TOKEN_CREDITS,
-            SUM(f.VALUE:"input"::NUMBER) AS INPUT_TOKENS,
-            SUM(f.VALUE:"output"::NUMBER) AS OUTPUT_TOKENS,
-            SUM(f.VALUE:"cache_read_input"::NUMBER) AS CACHE_READ_TOKENS,
-            SUM(f.VALUE:"cache_write_input"::NUMBER) AS CACHE_WRITE_TOKENS,
-            SUM(c.VALUE:"input"::FLOAT) AS INPUT_CREDITS,
-            SUM(c.VALUE:"output"::FLOAT) AS OUTPUT_CREDITS,
-            SUM(c.VALUE:"cache_read_input"::FLOAT) AS CACHE_READ_CREDITS,
-            SUM(c.VALUE:"cache_write_input"::FLOAT) AS CACHE_WRITE_CREDITS
-        FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_CODE_SNOWSIGHT_USAGE_HISTORY h,
-             LATERAL FLATTEN(INPUT => h.TOKENS_GRANULAR) f,
-             LATERAL FLATTEN(INPUT => h.CREDITS_GRANULAR) c
-        WHERE f.KEY = c.KEY
-          AND h.USAGE_TIME >= DATEADD('DAY', -90, CURRENT_TIMESTAMP())
-        GROUP BY 1, 2, 3
-    )
-),
-cli_data AS (
-    SELECT ARRAY_AGG(OBJECT_CONSTRUCT(
-        'date', USAGE_DATE::VARCHAR,
-        'userId', USER_ID,
-        'model', MODEL_NAME,
-        'totalTokens', TOTAL_TOKENS,
-        'totalTokenCredits', TOTAL_TOKEN_CREDITS,
-        'inputTokens', INPUT_TOKENS,
-        'outputTokens', OUTPUT_TOKENS,
-        'cacheReadTokens', CACHE_READ_TOKENS,
-        'cacheWriteTokens', CACHE_WRITE_TOKENS,
-        'inputCredits', INPUT_CREDITS,
-        'outputCredits', OUTPUT_CREDITS,
-        'cacheReadCredits', CACHE_READ_CREDITS,
-        'cacheWriteCredits', CACHE_WRITE_CREDITS
-    )) AS DATA_JSON
-    FROM (
-        SELECT
-            DATE_TRUNC('DAY', h.USAGE_TIME)::DATE AS USAGE_DATE,
-            h.USER_ID,
-            f.KEY AS MODEL_NAME,
-            SUM(h.TOKENS) AS TOTAL_TOKENS,
-            SUM(h.TOKEN_CREDITS) AS TOTAL_TOKEN_CREDITS,
-            SUM(f.VALUE:"input"::NUMBER) AS INPUT_TOKENS,
-            SUM(f.VALUE:"output"::NUMBER) AS OUTPUT_TOKENS,
-            SUM(f.VALUE:"cache_read_input"::NUMBER) AS CACHE_READ_TOKENS,
-            SUM(f.VALUE:"cache_write_input"::NUMBER) AS CACHE_WRITE_TOKENS,
-            SUM(c.VALUE:"input"::FLOAT) AS INPUT_CREDITS,
-            SUM(c.VALUE:"output"::FLOAT) AS OUTPUT_CREDITS,
-            SUM(c.VALUE:"cache_read_input"::FLOAT) AS CACHE_READ_CREDITS,
-            SUM(c.VALUE:"cache_write_input"::FLOAT) AS CACHE_WRITE_CREDITS
-        FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_CODE_CLI_USAGE_HISTORY h,
-             LATERAL FLATTEN(INPUT => h.TOKENS_GRANULAR) f,
-             LATERAL FLATTEN(INPUT => h.CREDITS_GRANULAR) c
-        WHERE f.KEY = c.KEY
-          AND h.USAGE_TIME >= DATEADD('DAY', -90, CURRENT_TIMESTAMP())
-        GROUP BY 1, 2, 3
-    )
-)
-SELECT
-    'COCO-COST-ANALYTICS-' || TO_CHAR(CURRENT_DATE(), 'DD-MM-YYYY') || '.html' AS REPORT_FILENAME,
-    SNOWFLAKE.CORTEX.COMPLETE(
-    'claude-3-5-sonnet',
-    [
-        {
-            'role': 'system',
-            'content': 'You generate self-contained HTML dashboards. Use Chart.js 4.4.1 from cdnjs. Google Fonts: Space Mono + DM Sans. Dark theme: --bg:#080E14, --surface:#0F1923, --text:#E8F4FD, --cli:#F5A623, --sg:#48D7A4, --sf-blue:#29B5E8. Date picker (7D/15D/30D default/45D/60D/90D/Custom). 8 KPI cards. Charts: token trend line, token type stacked bar, credit area, credit breakdown bar, model grouped bar, per-user horizontal bar. Detail table. TWO tabs: CLI and Snowsight. NO sample/dummy data. If a source has no data show a No Data placeholder. Return ONLY raw HTML.'
-        },
-        {
-            'role': 'user',
-            'content': 'Generate CoCo Usage Analytics dashboard. Embed this REAL data as JS arrays. Snowsight data: ' || COALESCE(sg.DATA_JSON::VARCHAR, '[]') || ' CLI data: ' || COALESCE(cli.DATA_JSON::VARCHAR, '[]') || ' Return only HTML.'
-        }
-    ],
-    {'max_tokens': 8192, 'temperature': 0.2}
-) AS DASHBOARD_HTML
-FROM sg_data sg, cli_data cli;
-```
-
-The result column `DASHBOARD_HTML` contains the complete HTML with your real usage data. The `REPORT_FILENAME` column provides the filename. Extract the HTML from the JSON response `messages` field and save with the generated filename.
+- Tab switch: swap `sgData`/`cliData`, re-render all KPIs + charts + table, keep date range
+- Date range change: re-filter active tab's data, re-render all KPIs + charts + table
+- All Chart.js instances MUST be destroyed before re-creating (prevent canvas reuse errors)
+- Detail table sorted by date descending by default
+- KPI "Total Credits" = sum of (inputCredits + outputCredits + cacheReadCredits + cacheWriteCredits)
+- KPI "Top Model" = model with highest totalTokens in filtered data
 
 ---
 
-**Last updated:** 2026-03-24 | **Version:** 5.1.0
+## 9. PRE-FLIGHT CHECKLIST (MANDATORY — VERIFY BEFORE SAVING)
+
+Before saving the HTML file, the agent MUST mentally verify each item. If ANY item fails, FIX IT before saving.
+
+```
+DATA INTEGRITY:
+  [ ] Snowsight SQL query was EXECUTED (not skipped)
+  [ ] CLI SQL query was EXECUTED (not skipped)
+  [ ] User lookup query was EXECUTED (not skipped)
+  [ ] All query results are embedded as JS arrays with real data
+  [ ] No dummy/sample/hardcoded data exists
+  [ ] USERS map contains resolved usernames for all USER_IDs
+
+LAYOUT:
+  [ ] TWO separate tabs exist: "CLI" and "Snowsight"
+  [ ] Tabs visually switch (active state styling)
+  [ ] Tab switch swaps data source (sgData vs cliData)
+  [ ] Date range persists across tab switches
+  [ ] 8 KPI cards are rendered
+  [ ] 6 Chart.js charts are rendered (line, stacked bar, area, stacked bar, grouped bar, horizontal bar)
+  [ ] 1 detail table with all 10 columns
+  [ ] Date range picker has 7 buttons (7D, 15D, 30D, 45D, 60D, 90D, Custom)
+  [ ] 30D is the default active range
+  [ ] Custom range shows From/To inputs + Apply button
+  [ ] Active range button color matches tab accent (CLI=#F5A623, Snowsight=#48D7A4)
+
+STYLING:
+  [ ] Chart.js 4.4.1 loaded from cdnjs
+  [ ] Google Fonts loaded: DM Sans + Space Mono
+  [ ] CSS variables match Section 5 exactly
+  [ ] Dark theme background: #080E14
+  [ ] 40x40px grid background pattern at 3% opacity
+  [ ] MODEL_COLORS and TOKEN_TYPE_COLORS match Section 5
+
+FILE OUTPUT:
+  [ ] Filename format: COCO-COST-ANALYTICS-DD-MM-YYYY.html
+  [ ] Saved under: coco-cost-analyzer/reports/
+  [ ] File is self-contained HTML (no external data dependencies)
+```
+
+---
+
+**Last updated:** 2026-04-21 | **Version:** 6.0.0
