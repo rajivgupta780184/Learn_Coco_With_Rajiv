@@ -1,6 +1,8 @@
 ---
 name: snowflake-performance-optimizer
 description: Snowflake performance optimization, query tuning, warehouse sizing, clustering, caching, and execution analysis. Use when: slow queries, improving query speed, warehouse performance, clustering strategies, query profiling, execution plans, performance troubleshooting, or running a full performance audit.
+author: Rajiv Gupta
+linkedin: https://www.linkedin.com/in/rajiv-gupta-618b0228/
 ---
 
 # Snowflake Performance Optimizer

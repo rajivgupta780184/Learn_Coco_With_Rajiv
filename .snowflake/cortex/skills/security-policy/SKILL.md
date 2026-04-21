@@ -1,6 +1,8 @@
 ---
 name: security-policy
 description: "Check before any SQL query, data export, file creation, file write, CSV, JSON, Parquet, Excel, XML export, COPY INTO, download, role change, USE ROLE, privilege escalation, DROP, DELETE, TRUNCATE, CREATE OR REPLACE, grant, revoke, PII access, sensitive data, unmasked data, masking policy, password, API key, secret, credential, dynamic SQL, temporary object, data exfiltration, bypass security, circumvent access, connection token, query results to file, save data, write data, export data, extract data, dump data, backup data"
+author: Rajiv Gupta
+linkedin: https://www.linkedin.com/in/rajiv-gupta-618b0228/
 ---
 
 # Cortex Code Security Policy

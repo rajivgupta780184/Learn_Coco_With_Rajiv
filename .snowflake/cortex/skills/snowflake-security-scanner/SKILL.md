@@ -1,6 +1,8 @@
 ---
 name: snowflake-security-scanner
 description: "Snowflake security posture assessment, vulnerability scanning, remediation guidance, compliance tracking, Trust Center integration, CIS Benchmark validation, and Threat Intelligence. Use when: security audit, vulnerability scan, compliance review, risk evaluation, MFA gaps, password policy, network security, RBAC issues, data exfiltration prevention, inactive user management, Trust Center findings, CIS benchmarks, data masking, row-access policies, or generating security reports."
+author: Rajiv Gupta
+linkedin: https://www.linkedin.com/in/rajiv-gupta-618b0228/
 ---
 
 # Snowflake Security Scanner

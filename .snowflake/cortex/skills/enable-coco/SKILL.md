@@ -1,6 +1,8 @@
 ---
 name: enable-coco
 description: "Enable Cortex Code (Coco) Snowsight access for the PUBLIC role. Use when: enable coco, enable cortex code, turn on coco, grant copilot, grant coco access, enable snowsight copilot, grant COPILOT_USER, allow cortex code access, turn on copilot, activate coco, activate cortex code, give coco access, add copilot access, enable ai assistant, start coco, coco on, enable copilot, restore coco access, re-enable coco"
+author: Rajiv Gupta
+linkedin: https://www.linkedin.com/in/rajiv-gupta-618b0228/
 ---
 
 # Enable Cortex Code (Coco) Snowsight for PUBLIC Role

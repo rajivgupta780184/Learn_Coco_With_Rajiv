@@ -1,6 +1,8 @@
 ---
 name: disable-coco
 description: "Disable Cortex Code (Coco) Snowsight access for all non-admin users. Use when: disable coco, disable cortex code, turn off coco, stop coco, remove coco, revoke coco, coco off, no coco, disable copilot, revoke copilot, remove copilot access, disable snowsight copilot, revoke COPILOT_USER, block cortex code access, turn off coco for all users, disable snowsight, disable cortex, restrict coco, restrict cortex code, deny coco access, coco access, copilot access, disable ai assistant, turn off copilot, stop copilot, remove cortex code, block copilot"
+author: Rajiv Gupta
+linkedin: https://www.linkedin.com/in/rajiv-gupta-618b0228/
 ---
 
 # Disable Cortex Code(coco) Snowsight for Non-Admin and public roles

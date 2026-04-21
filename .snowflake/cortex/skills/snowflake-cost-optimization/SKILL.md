@@ -1,6 +1,8 @@
 ---
 name: snowflake-cost-optimization
 description: "Snowflake cost optimization strategies, warehouse sizing, query tuning, storage efficiency, and spend analysis. Use when: analyzing costs, reducing credits, optimizing warehouses, identifying expensive queries, storage cleanup, or budget management."
+author: Rajiv Gupta
+linkedin: https://www.linkedin.com/in/rajiv-gupta-618b0228/
 ---
 
 # Snowflake Cost Optimization Skill
