@@ -1,0 +1,8 @@
+~/.snowflake/connections.toml
+~/.snowflake/cortex/
+.env
+*.pem
+*.key
+*.p12
+permissions.json
+mcp.json
