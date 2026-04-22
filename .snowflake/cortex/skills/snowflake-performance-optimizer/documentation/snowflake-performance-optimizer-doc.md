@@ -1,19 +1,27 @@
-# Snowflake Performance Optimizer — Skill Documentation
+# Snowflake Performance Optimizer — Documentation
 
-**Skill Name:** `snowflake-performance-optimizer`
-**File:** `SKILL.md`
-**Last Updated:** April 2026
+**Author:** Rajiv Gupta
+**LinkedIn:** [https://www.linkedin.com/in/rajiv-gupta-618b0228/](https://www.linkedin.com/in/rajiv-gupta-618b0228/)
+**Version:** 1.0
+**Last Updated:** April 22, 2026
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Purpose and Use Cases](#purpose-and-use-cases)
+2. [Architecture](#architecture)
 3. [Prerequisites](#prerequisites)
-4. [Trigger Keywords](#trigger-keywords)
-5. [Performance Dimensions](#performance-dimensions)
-6. [Data Collection — SQL Query Reference](#data-collection--sql-query-reference)
+4. [Quick Start](#quick-start)
+5. [Trigger Keywords](#trigger-keywords)
+6. [Performance Dimensions](#performance-dimensions)
+   - [1. Query Execution](#1-query-execution)
+   - [2. Warehouse Configuration](#2-warehouse-configuration)
+   - [3. Data Organization](#3-data-organization)
+   - [4. Caching Layers](#4-caching-layers)
+   - [5. Query Acceleration Service](#5-query-acceleration-service)
+   - [6. Query Lifecycle](#6-query-lifecycle)
+7. [Data Collection — SQL Query Reference](#data-collection--sql-query-reference)
    - [Query 1: Slow Query Analysis](#query-1-slow-query-analysis)
    - [Query 2: Spillage Detection](#query-2-spillage-detection)
    - [Query 3: Partition Pruning Efficiency](#query-3-partition-pruning-efficiency)
@@ -29,45 +37,106 @@
    - [Query 13: Failed and Error Query Analysis](#query-13-failed-and-error-query-analysis)
    - [Query 14: Warehouse Configuration Audit](#query-14-warehouse-configuration-audit)
    - [Query 15: Concurrency and Peak Load Analysis](#query-15-concurrency-and-peak-load-analysis)
-7. [Automatic Retry Logic](#automatic-retry-logic)
-8. [Optimization Checklists](#optimization-checklists)
-9. [Performance Red Flags](#performance-red-flags)
-10. [Recommended Actions](#recommended-actions)
-11. [Report Generation](#report-generation)
+8. [Automatic Retry Logic](#automatic-retry-logic)
+9. [Optimization Checklists](#optimization-checklists)
+10. [Performance Red Flags](#performance-red-flags)
+11. [Finding Severity and Priority Matrix](#finding-severity-and-priority-matrix)
+12. [Recommended Actions](#recommended-actions)
+13. [Report Generation](#report-generation)
     - [Report 1: Performance Assessment](#report-1-performance-assessment)
     - [Report 2: Performance Recommendations](#report-2-performance-recommendations)
     - [Report 3: Compliance Evaluation](#report-3-compliance-evaluation)
     - [Report Dependencies and Flow](#report-dependencies-and-flow)
     - [HTML Report Requirements](#html-report-requirements)
-12. [Execution Checklist](#execution-checklist)
-13. [Troubleshooting](#troubleshooting)
+14. [Execution Checklist](#execution-checklist)
+15. [Data Sources](#data-sources)
+16. [Post-Run Monitoring](#post-run-monitoring)
+17. [Troubleshooting](#troubleshooting)
+18. [Frequently Asked Questions](#frequently-asked-questions)
 
 ---
 
 ## Overview
 
-The **Snowflake Performance Optimizer** is a Cortex Code skill that performs a comprehensive performance audit of a Snowflake account. It executes 14 analysis query categories against `SNOWFLAKE.ACCOUNT_USAGE` views, covering query execution, warehouse configuration, data organization, caching, query acceleration, query lifecycle health, and concurrency.
+The **Snowflake Performance Optimizer** is a Cortex Code skill that performs a comprehensive, read-only performance audit of a Snowflake account. It executes 15 analysis queries across `SNOWFLAKE.ACCOUNT_USAGE` views, covering query execution, warehouse configuration, data organization, caching, query acceleration, query lifecycle health, and concurrency.
 
 The skill produces three HTML reports — an Assessment, a Recommendation plan, and a Compliance Evaluation — all saved to `snowflake-performance-optimizer/reports/`.
 
 All analysis is **read-only**. No DDL, DML, or configuration changes are executed. All metrics are derived from actual query results — no sample or dummy data is used.
 
+### Key Capabilities
+
+- Analyzes 15 query categories across 6 performance dimensions.
+- Identifies slow queries (>60s), spillage patterns, poor partition pruning, queue contention, and error patterns.
+- Evaluates warehouse configuration (sizing, auto-suspend, scaling policy, QAS eligibility).
+- Measures cache hit rates per warehouse and recommends auto-suspend tuning.
+- Detects compilation bottlenecks (SQL complexity vs. compute).
+- Produces three sequentially-dependent HTML reports: Assessment, Recommendations, and Compliance Evaluation.
+- Includes automatic retry logic with self-diagnosis for failed queries.
+
+### What This Skill Does NOT Do
+
+- It does **not** execute any DDL, DML, or configuration changes.
+- It does **not** alter warehouse settings, clustering keys, or account parameters.
+- It is strictly an assessment and documentation tool.
+
 ---
 
-## Purpose and Use Cases
+## Architecture
 
-| Use Case | Description |
-|----------|-------------|
-| **Full Performance Audit** | Run all 14 query categories to get a complete account health snapshot |
-| **Slow Query Investigation** | Identify queries exceeding 60 seconds and diagnose root causes |
-| **Warehouse Right-Sizing** | Detect spillage patterns that indicate undersized warehouses |
-| **Clustering Review** | Find large tables (>1GB) that may benefit from clustering keys |
-| **Cache Optimization** | Measure cache hit rates and tune auto-suspend settings per workload |
-| **QAS Assessment** | Identify queries eligible for Query Acceleration Service before upsizing |
-| **Concurrency Planning** | Detect peak-hour contention and plan multi-cluster or workload isolation |
-| **Error Pattern Detection** | Track recurring query failures to fix broken pipelines early |
-| **Compilation Bottlenecks** | Find queries where SQL complexity (not compute) is the bottleneck |
-| **Executive Reporting** | Generate stakeholder-ready HTML reports with compliance scores |
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                  Snowflake Performance Optimizer                    │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  DATA COLLECTION (15 Queries)                                       │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
+│  │ Q1: Slow │ │ Q2: Spill│ │ Q3: Prune│ │ Q4: Queue│ │ Q5:Credit│ │
+│  │ Queries  │ │ Detection│ │ Efficieny│ │ Wait Time│ │ Consumpt │ │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ │
+│  ┌────┴─────┐ ┌────┴─────┐ ┌────┴─────┐ ┌────┴─────┐ ┌────┴─────┐ │
+│  │ Q6: User │ │ Q7: Clust│ │ Q8: WH   │ │Q9/10:QAS │ │Q11:Cache │ │
+│  │ Activity │ │ Tables   │ │ Patterns │ │Eligiblity│ │ Hit Rate │ │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ │
+│  ┌────┴─────┐ ┌────┴─────┐ ┌────┴─────┐ ┌────┴─────┐              │
+│  │Q12:Compil│ │Q13:Errors│ │Q14:WH Cfg│ │Q15:Concur│              │
+│  │ vs Exec  │ │ Analysis │ │ Audit    │ │ Peak Load│              │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘              │
+│       │             │            │             │                     │
+│       └─────────────┴────────────┴─────────────┘                    │
+│                          │                                          │
+│              ┌───────────┴───────────┐                              │
+│              │   Automatic Retry     │                              │
+│              │   Logic (on failure)  │                              │
+│              └───────────┬───────────┘                              │
+│                          │                                          │
+│  PHASE 1                 ▼                                          │
+│            ┌──────────────────────────┐                              │
+│            │  Assessment HTML Report  │                              │
+│            │  (findings only)         │                              │
+│            └────────────┬─────────────┘                              │
+│                         │                                           │
+│  PHASE 2                ▼                                           │
+│            ┌────────────────────────────┐                            │
+│            │ Recommendation HTML Report │                            │
+│            │ (prioritized fixes + SQL)  │                            │
+│            └────────────┬───────────────┘                            │
+│                         │                                           │
+│  PHASE 3                ▼                                           │
+│            ┌──────────────────────────────┐                          │
+│            │ Compliance Evaluation Report │                          │
+│            │ (score + gap analysis)       │                          │
+│            └──────────────────────────────┘                          │
+│                                                                     │
+│  All reports → snowflake-performance-optimizer/reports/              │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+1. **Input:** Read-only SQL queries against `SNOWFLAKE.ACCOUNT_USAGE` views with a default 7-day lookback window.
+2. **Processing:** Query results are analyzed against defined thresholds and severity rules. Failed queries enter the automatic retry loop.
+3. **Output:** Three self-contained HTML reports saved to `snowflake-performance-optimizer/reports/`.
 
 ---
 
@@ -76,11 +145,37 @@ All analysis is **read-only**. No DDL, DML, or configuration changes are execute
 | Requirement | Detail |
 |-------------|--------|
 | **Snowflake Role** | `ACCOUNTADMIN` (required for `SNOWFLAKE.ACCOUNT_USAGE` views) |
-| **Warehouse** | Any active warehouse (X-SMALL is sufficient) |
+| **Warehouse** | Any active warehouse (X-SMALL is sufficient for the analysis queries) |
 | **Execution Time** | ~5-10 minutes for full analysis |
 | **Data Latency** | `ACCOUNT_USAGE` views have up to 45-minute delay |
 | **Default Lookback** | 7 days for all queries |
-| **Browser** | Any modern browser to render generated HTML reports |
+| **Browser** | Any modern browser (Chrome, Firefox, Edge) to render HTML reports |
+
+### Workspace Setup
+
+The skill expects the following directory structure:
+
+```
+snowflake-performance-optimizer/
+├── SKILL.md                          # Skill definition (do not modify manually)
+├── documentation/
+│   └── snowflake-performance-optimizer-doc.md  # This file
+└── reports/                          # Generated HTML reports land here
+    ├── Report-Performance-Assessment-<DD-MM-YYYY>.html
+    ├── Report-Performance-Recommendation-<DD-MM-YYYY>.html
+    └── Report-Performance-Compliance-<DD-MM-YYYY>.html
+```
+
+---
+
+## Quick Start
+
+1. Open Snowsight and navigate to the workspace containing this skill.
+2. Ensure you are using the **ACCOUNTADMIN** role (or equivalent with read access to `SNOWFLAKE.ACCOUNT_USAGE`).
+3. Invoke the skill by asking Cortex Code:
+   > "Run the Snowflake Performance Optimizer"
+4. The optimizer executes all 15 queries, applies retry logic for any failures, and generates three HTML reports sequentially.
+5. Review the generated reports in `snowflake-performance-optimizer/reports/`.
 
 ---
 
@@ -309,7 +404,7 @@ ORDER BY TOTAL_CREDITS DESC
 LIMIT 20;
 ```
 
-**Key Insight:** `AVG_DAILY_CREDITS` is calculated only across active days (not calendar days), providing a more accurate measure of per-day consumption when a warehouse is used.
+**Key Insight:** `AVG_DAILY_CREDITS` is calculated only across active days (not calendar days), providing a more accurate measure of per-day consumption when a warehouse is used intermittently.
 
 ---
 
@@ -409,6 +504,11 @@ LIMIT 30;
 - `eligible_acceleration_sec` — How many seconds of execution time QAS could save
 - `upper_limit_scale_factor` — The maximum useful scale factor for this query
 
+**Decision Rules:**
+- Queries with `eligible_acceleration_sec > 10` are strong candidates for QAS.
+- If `upper_limit_scale_factor <= 8`, a scale factor of 8 is recommended as the starting point.
+- If the query already runs under 5 seconds, QAS overhead may not be worthwhile.
+
 ---
 
 ### Query 10: QAS Eligibility (Per Warehouse)
@@ -429,6 +529,12 @@ ORDER BY total_eligible_sec DESC;
 ```
 
 **Decision Rule:** Warehouses with `total_eligible_sec > 300` (5 minutes) are strong candidates for enabling QAS.
+
+**Enabling QAS:**
+```sql
+ALTER WAREHOUSE <warehouse_name> SET ENABLE_QUERY_ACCELERATION = TRUE;
+ALTER WAREHOUSE <warehouse_name> SET QUERY_ACCELERATION_MAX_SCALE_FACTOR = 8;
+```
 
 ---
 
@@ -610,6 +716,8 @@ Query Fails ──► Diagnose Error Type ──► Apply Fix ──► Retry Qu
                                                    in report
 ```
 
+If a query is ultimately skipped, it is flagged in the Assessment Report with the error details, enabling manual follow-up.
+
 ---
 
 ## Optimization Checklists
@@ -669,17 +777,41 @@ Query Fails ──► Diagnose Error Type ──► Apply Fix ──► Retry Qu
 
 ## Performance Red Flags
 
-| Issue | Indicator | Solution |
-|-------|-----------|----------|
-| Remote spillage | `bytes_spilled_to_remote_storage > 0` | Increase warehouse size |
-| Full table scans | `partition_scan_pct > 80%` | Add clustering keys or WHERE filters |
-| Queue delays | `queued_overload_time > 5s` | Add clusters or separate workloads |
-| No result cache | Result cache not being hit | Standardize query patterns for cache reuse |
-| High compilation time | `compilation_time > execution_time` | Simplify SQL, reduce joins/columns, avoid deep UDF nesting |
-| Query failures | `execution_status = 'FAIL'` recurring | Fix broken SQL, check permissions, repair pipelines |
-| Low cache hit rate | `percentage_scanned_from_cache < 10%` | Extend auto-suspend for BI warehouses to 300-600s |
-| QAS eligible but disabled | `eligible_query_acceleration_time > 0` | Enable QAS: `ALTER WAREHOUSE SET ENABLE_QUERY_ACCELERATION = TRUE` |
-| High concurrency + queuing | `queued_queries > 20%` of total in peak hour | Enable multi-cluster scaling or isolate workloads |
+| Issue | Indicator | Severity | Solution |
+|-------|-----------|----------|----------|
+| Remote spillage | `bytes_spilled_to_remote_storage > 0` | Critical | Increase warehouse size |
+| Full table scans | `partition_scan_pct > 80%` | Critical | Add clustering keys or WHERE filters |
+| No network policy | Queue times consistently > 5s | High | Add clusters or separate workloads |
+| Queue delays | `queued_overload_time > 5s` | High | Add clusters or separate workloads |
+| High compilation time | `compilation_time > execution_time` | High | Simplify SQL, reduce joins/columns, avoid deep UDF nesting |
+| Query failures | `execution_status = 'FAIL'` recurring | High | Fix broken SQL, check permissions, repair pipelines |
+| Low cache hit rate | `percentage_scanned_from_cache < 10%` | Medium | Extend auto-suspend for BI warehouses to 300-600s |
+| QAS eligible but disabled | `eligible_query_acceleration_time > 0` | Medium | Enable QAS: `ALTER WAREHOUSE SET ENABLE_QUERY_ACCELERATION = TRUE` |
+| High concurrency + queuing | `queued_queries > 20%` of total in peak hour | High | Enable multi-cluster scaling or isolate workloads |
+| No result cache | Result cache not being hit | Medium | Standardize query patterns for cache reuse |
+
+---
+
+## Finding Severity and Priority Matrix
+
+Performance findings are mapped to priorities with recommended timelines:
+
+| Finding | Severity | Effort | Priority | Timeline |
+|---------|----------|--------|----------|----------|
+| Remote spillage (warehouse undersized) | Critical | Low | P0 | Immediate |
+| Full table scans (>80% partitions) | Critical | Medium | P0 | Immediate |
+| Recurring query failures (broken pipelines) | High | Low | P1 | Within 24 hours |
+| Queue wait times > 5s sustained | High | Medium | P1 | Within 24 hours |
+| Compilation > execution time | High | Medium | P1 | Within 7 days |
+| Oversized warehouses (X-LARGE+ with <10 queries/day) | High | Low | P1 | Within 7 days |
+| Auto-suspend > 600s on ETL warehouses | Medium | Low | P2 | Within 14 days |
+| Cache hit rate < 10% | Medium | Low | P2 | Within 14 days |
+| Large tables (>10GB) without clustering keys | Medium | Medium | P2 | Within 30 days |
+| QAS eligible but not enabled | Medium | Low | P2 | Within 30 days |
+| Auto-resume = FALSE | Medium | Low | P2 | Within 7 days |
+| STANDARD scaling on cost-focused workloads | Low | Low | P3 | Within 30 days |
+| Direct user grants instead of roles (query-related) | Low | Medium | P3 | Within 90 days |
+| Tables 1-10GB without clustering review | Low | Low | P3 | Within 90 days |
 
 ---
 
@@ -794,12 +926,64 @@ Phase 3: Assessment + Recommendations ──► Compliance Report
 
 The complete checklist for a full skill run:
 
-- [ ] Executed all 14 analysis query categories (Queries 1-15, with QAS split into per-query and per-warehouse)
+- [ ] Executed all 15 analysis queries (Queries 1-15, with QAS split into per-query and per-warehouse)
 - [ ] Applied retry logic for any failed queries
 - [ ] Generated Assessment Report (findings only, no recommendations)
 - [ ] Generated Recommendation Report (derived from assessment)
 - [ ] Generated Compliance Report (references both previous reports)
 - [ ] Validated all 3 reports are saved in `snowflake-performance-optimizer/reports/` folder
+
+---
+
+## Data Sources
+
+All queries are read-only and target the following Snowflake system views:
+
+| View / Command | Queries Used In | Purpose |
+|----------------|----------------|---------|
+| `SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY` | Q1, Q2, Q3, Q4, Q6, Q8, Q11, Q12, Q13, Q15 | Query execution metadata, timing, spillage, partitions, errors, concurrency |
+| `SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY` | Q5 | Credit consumption by warehouse |
+| `SNOWFLAKE.ACCOUNT_USAGE.TABLES` | Q7 | Table metadata, row counts, sizes, clustering keys |
+| `SNOWFLAKE.ACCOUNT_USAGE.QUERY_ACCELERATION_ELIGIBLE` | Q9, Q10 | QAS eligibility per query and per warehouse |
+| `SHOW WAREHOUSES` | Q14 | Warehouse configuration (size, auto-suspend, scaling policy, auto-resume) |
+
+**Note:** `SNOWFLAKE.ACCOUNT_USAGE` views have a latency of up to 45 minutes. Results reflect data available at query time, not real-time state. Very recent queries may not yet appear.
+
+---
+
+## Post-Run Monitoring
+
+After reviewing the reports and applying recommended changes, set up ongoing monitoring:
+
+### Scheduled Performance Check
+
+```sql
+CREATE OR REPLACE TASK performance_monitoring_weekly
+    WAREHOUSE = COMPUTE_WH
+    SCHEDULE = 'USING CRON 0 9 * * 1 UTC'
+AS BEGIN END;
+```
+
+### Key Metrics to Track Weekly
+
+| Metric | Target | Alert If |
+|--------|--------|----------|
+| Remote spillage count | 0 | Any query spills to remote storage |
+| Average queue wait time | < 1 second | Sustained > 5 seconds during business hours |
+| Cache hit rate (BI warehouses) | > 50% | Drops below 10% |
+| Failed query count | Decreasing trend | Spike of > 20% week-over-week |
+| QAS savings (if enabled) | Positive ROI | Credit cost > time savings value |
+| Partition scan efficiency | < 50% avg scan pct | > 80% scan pct on large tables |
+
+### Recommended Re-Run Cadence
+
+| Scenario | Recommended Frequency |
+|----------|-----------------------|
+| Active development with frequent schema/workload changes | Weekly |
+| Stable production environment | Monthly |
+| After major warehouse resizing or clustering changes | On-demand (immediately after) |
+| After onboarding new teams or workloads | On-demand |
+| Pre-budget planning (cost optimization) | Quarterly |
 
 ---
 
@@ -817,3 +1001,59 @@ The complete checklist for a full skill run:
 | HTML reports look broken in browser | Browser compatibility | Use a modern browser (Chrome, Firefox, Edge) |
 | Elapsed time metrics seem off | `ACCOUNT_USAGE` latency (up to 45 minutes) | Recent queries may not yet appear; note latency in report |
 | Cache hit rate shows 0% for all warehouses | All warehouses auto-suspend immediately; no cache retained | Flag in assessment; recommend extending auto-suspend for BI workloads |
+
+---
+
+## Frequently Asked Questions
+
+### Q: Do I need ACCOUNTADMIN to run the optimizer?
+
+**A:** Yes, ACCOUNTADMIN is required for full access to `SNOWFLAKE.ACCOUNT_USAGE` views. A custom role with `IMPORTED PRIVILEGES` on the `SNOWFLAKE` database may work for most queries, but `SHOW WAREHOUSES` and some views may require higher privileges.
+
+### Q: Will the optimizer make any changes to my account?
+
+**A:** No. The optimizer is strictly read-only. It executes `SELECT` queries and `SHOW` commands only. All recommended SQL (ALTER WAREHOUSE, clustering, etc.) is provided as documentation — it is never executed automatically.
+
+### Q: How long does a full performance audit take?
+
+**A:** Typically 5–10 minutes depending on account size, query history volume, and warehouse availability. The 15 analysis queries run sequentially, and HTML report generation adds a few seconds per report.
+
+### Q: What happens if a query fails during the audit?
+
+**A:** The automatic retry logic diagnoses the error (timeout, permission, column not found, division by zero, no data), applies a corrective fix, and retries. If recovery fails, the query is marked as SKIPPED in the report with the error details.
+
+### Q: Can I run individual queries instead of the full audit?
+
+**A:** Yes. Each of the 15 queries is self-contained and can be executed independently. You can ask Cortex Code to run a specific query category (e.g., "Run only the spillage detection query").
+
+### Q: What is the default lookback window?
+
+**A:** 7 days for all queries. If queries return no data, the retry logic may expand the window to 14 or 30 days. You can also request a custom lookback window when invoking the skill.
+
+### Q: How does the optimizer handle the 45-minute ACCOUNT_USAGE latency?
+
+**A:** The optimizer notes this latency in reports. Very recent queries (last 45 minutes) may not appear in results. For real-time diagnostics, use `INFORMATION_SCHEMA.QUERY_HISTORY()` table function directly.
+
+### Q: What is the difference between local and remote spillage?
+
+**A:** Local spillage writes to the warehouse's SSD cache — it's a warning that the query is close to the memory limit. Remote spillage writes to cloud storage (S3/Azure Blob/GCS) — it's critical and means the warehouse is definitively undersized for that query. Remote spillage has a much larger performance impact.
+
+### Q: Should I upsize the warehouse or enable QAS first?
+
+**A:** Check QAS eligibility first (Queries 9-10). If a query is QAS-eligible, enabling QAS is cheaper and faster to implement than upsizing. Upsize only for queries with remote spillage or where QAS is not applicable. QAS works best for queries with selective filters on large datasets.
+
+### Q: How does the Compliance Evaluation score work?
+
+**A:** The compliance score is a percentage reflecting how many of the recommended optimizations have been implemented. It cross-references Assessment findings with Recommendations to produce a gap analysis. A score of 100% means all recommendations have been addressed.
+
+### Q: Where are the reports saved?
+
+**A:** All HTML reports are saved to `snowflake-performance-optimizer/reports/` in the workspace. File names include the execution date (DD-MM-YYYY format) for version tracking.
+
+### Q: How often should I run the optimizer?
+
+**A:** Recommended cadence:
+- **Weekly:** For accounts with active development and frequent workload changes
+- **Monthly:** For stable production accounts
+- **On-demand:** After major changes (warehouse resizing, new clustering, team onboarding)
+- **Quarterly:** For cost optimization and budget planning
