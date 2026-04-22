@@ -1,405 +1,501 @@
-# Snowflake Security Scanner — Skill Documentation
+# Snowflake Security Scanner — Documentation
 
-**Skill Name:** `snowflake-security-scanner`
-**File:** `SKILL.md`
-**Last Updated:** April 2026
+**Author:** Rajiv Gupta
+**LinkedIn:** [https://www.linkedin.com/in/rajiv-gupta-618b0228/](https://www.linkedin.com/in/rajiv-gupta-618b0228/)
+**Version:** 1.0
+**Last Updated:** April 22, 2026
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Purpose and Use Cases](#purpose-and-use-cases)
+2. [Architecture](#architecture)
 3. [Prerequisites](#prerequisites)
-4. [Trigger Keywords](#trigger-keywords)
+4. [Quick Start](#quick-start)
 5. [Three-Phase Workflow](#three-phase-workflow)
-6. [Phase 1 — Security Assessment](#phase-1--security-assessment)
-   - [Domain 1: Critical User Security Vulnerabilities](#domain-1-critical-user-security-vulnerabilities)
-   - [Domain 2: Inactive & Stale Account Assessment](#domain-2-inactive--stale-account-assessment)
-   - [Domain 3: Failed Authentication Analysis](#domain-3-failed-authentication-analysis)
-   - [Domain 4: Authentication Method Assessment](#domain-4-authentication-method-assessment)
-   - [Domain 5: Data Exfiltration Risk Assessment](#domain-5-data-exfiltration-risk-assessment)
-   - [Domain 6: Private Link Assessment](#domain-6-private-link-assessment)
-   - [Domain 7: Network / Session / Password Policy Assessment](#domain-7-network--session--password-policy-assessment)
-   - [Domain 8: Encryption & Tri-Secret Secure Assessment](#domain-8-encryption--tri-secret-secure-assessment)
-   - [Domain 9: RBAC Framework Evaluation](#domain-9-rbac-framework-evaluation)
-   - [Domain 10: Network Security Assessment](#domain-10-network-security-assessment)
-   - [Domain 11: Trust Center Integration](#domain-11-trust-center-integration)
-   - [Domain 12: CIS Benchmark Extended Checks](#domain-12-cis-benchmark-extended-checks)
-   - [Assessment Checklist](#assessment-checklist)
-   - [Phase 1 Report Output](#phase-1-report-output)
-7. [Phase 2 — Security Recommendations](#phase-2--security-recommendations)
-   - [Priority Classification](#priority-classification)
-   - [Remediation Priority Matrix](#remediation-priority-matrix)
-   - [Remediation Verification Checklist](#remediation-verification-checklist)
-   - [Rollback Procedures](#rollback-procedures)
-   - [Phase 2 Report Output](#phase-2-report-output)
-8. [Phase 3 — Compliance Dashboard](#phase-3--compliance-dashboard)
-   - [Dashboard Panels](#dashboard-panels)
-   - [Visual Indicators and Scoring](#visual-indicators-and-scoring)
-   - [Phase 3 Report Output](#phase-3-report-output)
-9. [SQL Query Inventory](#sql-query-inventory)
-10. [Data Sources](#data-sources)
-11. [Finding Severity Definitions](#finding-severity-definitions)
+   - [Phase 1 — Security Assessment](#phase-1--security-assessment)
+   - [Phase 2 — Security Recommendations](#phase-2--security-recommendations)
+   - [Phase 3 — Compliance Dashboard](#phase-3--compliance-dashboard)
+6. [Security Domains Reference](#security-domains-reference)
+   - [Domain 1 — Critical User Security Vulnerabilities](#domain-1--critical-user-security-vulnerabilities)
+   - [Domain 2 — Inactive & Stale Account Assessment](#domain-2--inactive--stale-account-assessment)
+   - [Domain 3 — Failed Authentication Analysis](#domain-3--failed-authentication-analysis)
+   - [Domain 4 — Authentication Method Assessment](#domain-4--authentication-method-assessment)
+   - [Domain 5 — Data Exfiltration Risk Assessment](#domain-5--data-exfiltration-risk-assessment)
+   - [Domain 6 — Private Link Assessment](#domain-6--private-link-assessment)
+   - [Domain 7 — Network / Session / Password Policy Assessment](#domain-7--network--session--password-policy-assessment)
+   - [Domain 8 — Encryption & Tri-Secret Secure Assessment](#domain-8--encryption--tri-secret-secure-assessment)
+   - [Domain 9 — RBAC Framework Evaluation](#domain-9--rbac-framework-evaluation)
+   - [Domain 10 — Network Security Assessment](#domain-10--network-security-assessment)
+   - [Domain 11 — Trust Center Integration](#domain-11--trust-center-integration)
+   - [Domain 12 — CIS Benchmark Extended Checks](#domain-12--cis-benchmark-extended-checks)
+7. [Finding Severity Definitions](#finding-severity-definitions)
+8. [Remediation Priority Matrix](#remediation-priority-matrix)
+9. [Assessment Checklist](#assessment-checklist)
+10. [Remediation Verification & Rollback](#remediation-verification--rollback)
+11. [Error Handling & Self-Healing](#error-handling--self-healing)
 12. [Execution Rules](#execution-rules)
-13. [Error Handling and Self-Healing](#error-handling-and-self-healing)
-14. [Report File Inventory](#report-file-inventory)
-15. [Troubleshooting](#troubleshooting)
+13. [Report Output Specifications](#report-output-specifications)
+14. [Data Sources](#data-sources)
+15. [Frequently Asked Questions](#frequently-asked-questions)
 
 ---
 
 ## Overview
 
-The **Snowflake Security Scanner** is a Cortex Code skill that performs a comprehensive, three-phase security audit of a Snowflake account across **12 security domains**. It scans user security, authentication methods, network configuration, RBAC structure, data protection, encryption, Trust Center findings, and CIS Benchmark compliance — then produces three professional HTML reports: an Assessment, a Recommendation plan, and a Compliance Dashboard.
+The Snowflake Security Scanner is a Cortex Code skill that performs a comprehensive, read-only security posture assessment of a Snowflake account. It evaluates 12 security domains, produces prioritized remediation recommendations, and generates an interactive compliance dashboard — all without making any DDL, DML, or configuration changes.
 
-The skill is **assessment and documentation only**. No DDL, DML, or configuration changes are ever executed. All queries target `SNOWFLAKE.ACCOUNT_USAGE` and `SNOWFLAKE.TRUST_CENTER` views.
+### Key Capabilities
+
+- Scans 12 security domains covering user security, authentication, network, data protection, RBAC, encryption, Trust Center, and CIS Benchmarks.
+- Identifies findings at four severity levels: Critical, High, Medium, and Low.
+- Produces three HTML reports: Assessment, Recommendations, and Compliance Dashboard.
+- Includes step-by-step remediation SQL for every finding with rollback procedures.
+- Integrates with Snowflake Trust Center for automated scanner findings, CIS Benchmark validation, and Threat Intelligence detection.
+- Features self-healing: if a query fails, the skill auto-diagnoses, fixes, retries, and logs the correction.
+
+### What This Skill Does NOT Do
+
+- It does **not** execute any DDL, DML, or configuration changes.
+- It does **not** modify account settings, users, roles, policies, or any Snowflake objects.
+- It is strictly an assessment and documentation tool.
 
 ---
 
-## Purpose and Use Cases
+## Architecture
 
-| Use Case | Description |
-|----------|-------------|
-| **Full Security Audit** | Scan all 12 domains for a complete account security posture review |
-| **MFA Gap Analysis** | Identify users without MFA, especially privileged ACCOUNTADMIN users |
-| **Brute Force Detection** | Detect repeated failed login attempts from suspicious IPs |
-| **Inactive User Cleanup** | Find stale accounts (90+ days) with orphaned access |
-| **Data Exfiltration Prevention** | Audit COPY/UNLOAD operations and external stage exposure |
-| **RBAC Review** | Evaluate role hierarchy depth, privilege sprawl, and separation of duties |
-| **CIS Benchmark Compliance** | Validate against CIS Snowflake Benchmark controls |
-| **Trust Center Integration** | Surface Security Essentials, CIS, and Threat Intelligence findings |
-| **Network Security Audit** | Assess network policies, Private Link status, and IP access patterns |
-| **Policy Gap Detection** | Identify missing password, session, authentication, and masking policies |
-| **Executive Compliance Reporting** | Generate stakeholder-ready dashboard with health scores |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   Snowflake Security Scanner                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  PHASE 1: Security Assessment                                  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐         ┌──────────┐  │
+│  │ Domain 1 │ │ Domain 2 │ │ Domain 3 │  ...    │Domain 12 │  │
+│  │ User Sec │ │ Inactive │ │ Auth Fail│         │CIS Extnd │  │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘         └────┬─────┘  │
+│       │             │            │                     │        │
+│       └─────────────┴────────────┴─────────────────────┘        │
+│                          │                                      │
+│                          ▼                                      │
+│            ┌──────────────────────────┐                         │
+│            │  Assessment HTML Report  │                         │
+│            └────────────┬─────────────┘                         │
+│                         │                                       │
+│  PHASE 2: Recommendations                                      │
+│            ┌────────────▼─────────────┐                         │
+│            │ Prioritized Remediation  │                         │
+│            │ Plan (P0-P3) with SQL    │                         │
+│            └────────────┬─────────────┘                         │
+│                         │                                       │
+│            ┌────────────▼─────────────┐                         │
+│            │ Recommendation HTML Rpt  │                         │
+│            └────────────┬─────────────┘                         │
+│                         │                                       │
+│  PHASE 3: Compliance Dashboard                                 │
+│            ┌────────────▼─────────────┐                         │
+│            │ Interactive Dashboard    │                         │
+│            │ (HTML, self-contained)   │                         │
+│            └──────────────────────────┘                         │
+│                                                                 │
+│  All reports → snowflake-security-scanner/reports/              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+1. **Input:** Read-only SQL queries against `SNOWFLAKE.ACCOUNT_USAGE` views and `SNOWFLAKE.TRUST_CENTER` views.
+2. **Processing:** Findings are categorized by domain, tagged with severity, and mapped to remediation steps.
+3. **Output:** Three self-contained HTML reports saved to the `snowflake-security-scanner/reports/` directory.
 
 ---
 
 ## Prerequisites
 
-| Requirement | Detail |
-|-------------|--------|
-| **Snowflake Role** | `ACCOUNTADMIN` (required for ACCOUNT_USAGE and TRUST_CENTER views) |
-| **Warehouse** | Any active warehouse (X-SMALL is sufficient) |
-| **Data Latency** | `ACCOUNT_USAGE` views have up to 45-minute delay |
-| **Trust Center** | Optional — scanner packages should be enabled for full Domain 11 coverage |
-| **Execution Time** | ~10-20 minutes for full three-phase workflow |
+### Required Role and Privileges
+
+The scanner requires a role with read access to Snowflake metadata views. **ACCOUNTADMIN** is recommended for full coverage.
+
+```sql
+SELECT CURRENT_ROLE(), CURRENT_USER();
+```
+
+Minimum required access:
+- `SNOWFLAKE.ACCOUNT_USAGE.USERS` — User account metadata
+- `SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_USERS` — Role grants to users
+- `SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_ROLES` — Role-to-role grants
+- `SNOWFLAKE.ACCOUNT_USAGE.LOGIN_HISTORY` — Authentication events
+- `SNOWFLAKE.ACCOUNT_USAGE.SESSIONS` — Session metadata
+- `SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY` — Query execution logs
+- `SNOWFLAKE.ACCOUNT_USAGE.STAGES` — Stage inventory
+- `SNOWFLAKE.ACCOUNT_USAGE.TABLES` — Table metadata
+- `SNOWFLAKE.ACCOUNT_USAGE.ROLES` — Role definitions
+- `SNOWFLAKE.ACCOUNT_USAGE.TASKS` — Task ownership
+- `SNOWFLAKE.ACCOUNT_USAGE.POLICY_REFERENCES` — Masking and row-access policy bindings
+- `SNOWFLAKE.TRUST_CENTER.SCANNER_PACKAGES_VIEW` — Trust Center scanner inventory
+- `SNOWFLAKE.TRUST_CENTER.FINDINGS_VIEW` — Trust Center findings
+- `SNOWFLAKE.TRUST_CENTER.TIME_SERIES_DAILY_FINDINGS` — Findings trend data
+- `SHOW PARAMETERS` / `SHOW NETWORK POLICIES` / `SHOW PASSWORD POLICIES` — Account-level parameters
+
+### Workspace Setup
+
+The skill expects the following directory structure:
+
+```
+snowflake-security-scanner/
+├── SKILL.md                          # Skill definition (do not modify manually)
+├── documentation/
+│   └── snowflake-security-scanner-doc.md  # This file
+└── reports/                          # Generated HTML reports land here
+    ├── Report-Security-Assessment-<DD-MM-YYYY>.html
+    ├── Report-Security-Recommendation-<DD-MM-YYYY>.html
+    └── Report-Compliance-Dashboard-<DD-MM-YYYY>.html
+```
 
 ---
 
-## Trigger Keywords
+## Quick Start
 
-The skill activates when user input matches any of these topics:
-
-- Security audit / security scan / security assessment
-- Vulnerability scan / vulnerability report
-- Compliance review / compliance dashboard
-- Risk evaluation / risk assessment
-- MFA gaps / MFA coverage
-- Password policy / session policy
-- Network security / network policy
-- RBAC issues / role-based access control
-- Data exfiltration prevention
-- Inactive user management
-- Trust Center findings
-- CIS benchmarks / CIS compliance
-- Data masking / row-access policies
-- Security reports / security posture
+1. Open Snowsight and navigate to the workspace containing this skill.
+2. Ensure you are using the **ACCOUNTADMIN** role (or equivalent with read access to `SNOWFLAKE.ACCOUNT_USAGE` and `SNOWFLAKE.TRUST_CENTER`).
+3. Invoke the skill by asking Cortex Code:
+   > "Run the Snowflake Security Scanner"
+4. The scanner will execute all three phases sequentially and save reports to `snowflake-security-scanner/reports/`.
+5. Review the generated HTML reports by opening them from the workspace file browser.
 
 ---
 
 ## Three-Phase Workflow
 
-The skill executes three phases **strictly sequentially** — no skipping, merging, or parallelizing:
+The scanner executes three phases **strictly sequentially**. Each phase must fully complete before the next begins.
 
-```
-Phase 1: Security Assessment ──► Phase 2: Recommendations ──► Phase 3: Compliance Dashboard
-```
+### Phase 1 — Security Assessment
 
-| Phase | Purpose | Input | Output |
-|-------|---------|-------|--------|
-| **Phase 1** | Scan 12 security domains and capture findings | Live ACCOUNT_USAGE + TRUST_CENTER data | Assessment HTML report |
-| **Phase 2** | Produce prioritized remediation plan | Phase 1 findings | Recommendation HTML report |
-| **Phase 3** | Build interactive compliance dashboard | Phase 1 + Phase 2 data | Compliance Dashboard HTML |
+Performs a comprehensive security scan across all 12 security domains. For each finding, the scanner captures:
 
----
+| Field | Description |
+|-------|-------------|
+| `finding_id` | Unique identifier for the finding type (e.g., `USERS_WITHOUT_MFA`) |
+| `severity` | Risk level: Critical, High, Medium, or Low |
+| `affected_resource` | The specific user, role, object, or configuration affected |
+| `description` | Human-readable explanation of the security gap |
 
-## Phase 1 — Security Assessment
+**Output:** `Report-Security-Assessment-<DD-MM-YYYY>.html`
 
-Phase 1 performs a comprehensive scan across all 12 security domains. Every finding is captured with: finding ID, severity (Critical/High/Medium/Low), affected resource, and description.
+Report contents:
+- Executive summary with overall security posture
+- Total findings by severity (Critical / High / Medium / Low)
+- Detailed findings table per domain
+- Affected objects and resources
+- Discovery timestamp for each finding
+- "Report Generation Summary" banner at the top with total elapsed time
 
-### Domain 1: Critical User Security Vulnerabilities
+### Phase 2 — Security Recommendations
 
-**Focus:** MFA coverage for all users and privileged accounts, weak default roles.
+Takes Phase 1 findings as input and produces a detailed, actionable remediation plan organized by priority:
 
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 1.1 | `USERS_WITHOUT_MFA` | **CRITICAL** | Users with password auth but no MFA enabled |
-| 1.2 | `ACCOUNTADMIN_NO_MFA` | **CRITICAL** | ACCOUNTADMIN role holders without MFA |
-| 1.3 | `WEAK_DEFAULT_ROLE` | MEDIUM | Users with PUBLIC or NULL default role |
+| Priority | SLA | Description |
+|----------|-----|-------------|
+| **P0 — Critical** | Within 24 hours | Immediate action required |
+| **P1 — High** | Within 7 days | Urgent remediation |
+| **P2 — Medium** | Within 30 days | Scheduled remediation |
+| **P3 — Low** | Within 90 days | Best-practice improvements |
 
-**Key Data Source:** `SNOWFLAKE.ACCOUNT_USAGE.USERS`
+Each recommendation includes:
+- Step-by-step remediation SQL from the corresponding domain section
+- Business impact context
+- Estimated remediation effort (Low / Medium / High)
+- Rollback procedures in case of issues
 
-**MFA Detection Logic:**
-- Filters for `HAS_PASSWORD = TRUE AND HAS_MFA = FALSE`
-- Joins with `GRANTS_TO_USERS` to identify ACCOUNTADMIN holders specifically
+**Output:** `Report-Security-Recommendation-<DD-MM-YYYY>.html`
 
-**Remediation Approach:**
-- Create tiered authentication policies: `human_user_mfa_policy` (UI users) and `service_account_policy` (key-pair)
-- Generate `ALTER USER ... SET AUTHENTICATION POLICY` statements per affected user
-- Optionally set account-level default: `ALTER ACCOUNT SET AUTHENTICATION POLICY`
+Report contents:
+- Reference to the source Phase 1 assessment report
+- Prioritized recommendation table (P0–P3)
+- Detailed fix instructions per finding
+- Estimated remediation effort
+- Rollback procedures
+- Verification queries to confirm remediation success
+- "Report Generation Summary" banner at the top with total elapsed time
 
----
+### Phase 3 — Compliance Dashboard
 
-### Domain 2: Inactive & Stale Account Assessment
+Generates an interactive, self-contained HTML dashboard using data from Phases 1 and 2.
 
-**Focus:** Identify orphaned access from inactive, never-logged-in, or password-stale users.
+**Output:** `Report-Compliance-Dashboard-<DD-MM-YYYY>.html`
 
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 2.1 | `INACTIVE_USER` | MEDIUM | Users inactive for 90+ days |
-| 2.2 | `NEVER_LOGGED_IN` | LOW | Users created 30+ days ago but never authenticated |
-| 2.3 | `STALE_PASSWORD` | **HIGH** | Passwords not rotated within 90 days |
-| 2.4 | `DISABLED_USER_WITH_GRANTS` | MEDIUM | Disabled users still holding active role assignments |
-
-**Key Data Sources:** `SNOWFLAKE.ACCOUNT_USAGE.USERS`, `SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_USERS`
-
-**Remediation Approach:**
-1. Revoke admin roles from inactive users first
-2. Generate `ALTER USER ... SET DISABLED = TRUE` for inactive accounts
-3. Optionally create tracking table (`SECURITY_AUDIT.DISABLED_USERS`) and automated cleanup task
-4. Force password reset via `ALTER USER ... SET MUST_CHANGE_PASSWORD = TRUE` for stale passwords
-5. Disable accounts with passwords older than 365 days
-
----
-
-### Domain 3: Failed Authentication Analysis
-
-**Focus:** Detect brute force attempts and failed logins from unknown IP addresses.
-
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 3.1 | `BRUTE_FORCE_ATTEMPT` | **HIGH** | 5+ failed login attempts from same user/IP in 7 days |
-| 3.2 | `UNKNOWN_IP_LOGIN_FAILURE` | MEDIUM | Failed logins from IPs never seen in successful logins |
-
-**Key Data Source:** `SNOWFLAKE.ACCOUNT_USAGE.LOGIN_HISTORY`
-
-**Brute Force Detection Threshold:** `COUNT(*) >= 5` failed attempts grouped by `USER_NAME`, `CLIENT_IP`, `REPORTED_CLIENT_TYPE` within 7 days.
-
-**Remediation Approach:**
-1. Block suspicious IPs via network policy (`BLOCKED_IP_LIST`)
-2. Reset passwords for targeted accounts
-3. Set password lockout: `PASSWORD_MAX_RETRIES = 5, PASSWORD_LOCKOUT_TIME_MINS = 30`
-4. Create monitoring alert (`brute_force_detection_alert`) with email notification
+Dashboard features:
+- **Category Breakdown:** Finding count, completion percentage, and status by security category (Access Control, Authentication, Network Security, Data Protection, RBAC, Encryption, Auditing, Trust Center, CIS Extended Checks).
+- **Priority Tracking:** Remediation timeline adherence for each priority level (P0–P3) against defined SLA windows.
+- **Visual Indicators:** Progress bars and/or charts per priority bucket, per category, and for overall remediation completion.
+- **Risk Flagging:** Highlights overdue or at-risk items where SLA deadlines have been breached or are within 48 hours of expiry.
+- **Overall Compliance Health Score:** Single composite percentage reflecting overall remediation progress.
+- **Technical:** Fully interactive, self-contained HTML with no external dependencies, print-friendly, suitable for executive presentation.
 
 ---
 
-### Domain 4: Authentication Method Assessment
+## Security Domains Reference
 
-**Focus:** Evaluate authentication method distribution, MFA coverage by privilege level, and SSO adoption.
+### Domain 1 — Critical User Security Vulnerabilities
 
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 4.1 | `AUTH_METHOD_DISTRIBUTION` | Assessment | Distribution: Password Only, Key-Pair Only, Password+Key, SSO/External |
-| 4.2 | `AUTH_FACTOR_USAGE` | Assessment | Which auth factors are actually used in the last 30 days |
-| 4.3 | `MFA_COVERAGE` | Assessment | Overall MFA coverage percentage for password users |
-| 4.4 | `MFA_BY_PRIVILEGE` | Assessment | MFA adoption by role category (Admin/System/Standard) |
-| 4.5 | `HUMAN_USER_NO_SSO` | MEDIUM | Human users authenticating with password instead of SSO |
-| 4.6 | `SERVICE_ACCOUNT_PASSWORD` | **HIGH** | Service accounts using password instead of key-pair auth |
+Evaluates the most critical user-level security gaps.
 
-**Key Data Sources:** `SNOWFLAKE.ACCOUNT_USAGE.USERS`, `SNOWFLAKE.ACCOUNT_USAGE.LOGIN_HISTORY`
+| Finding ID | Severity | Description |
+|------------|----------|-------------|
+| `USERS_WITHOUT_MFA` | CRITICAL | Users with password authentication but no MFA enabled |
+| `ACCOUNTADMIN_NO_MFA` | CRITICAL | ACCOUNTADMIN-role users without MFA protection |
+| `WEAK_DEFAULT_ROLE` | MEDIUM | Users with PUBLIC or no default role set |
 
-**Service Account Detection Logic:** Matches usernames containing `SVC`, `SERVICE`, `ETL`, `PIPELINE`, `BOT` or emails containing `service`.
+**Key queries target:** `SNOWFLAKE.ACCOUNT_USAGE.USERS`, `SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_USERS`
 
-**Remediation for Service Accounts:**
-1. Generate RSA key pair locally (openssl commands provided)
-2. `ALTER USER <SVC_ACCOUNT> SET RSA_PUBLIC_KEY = '...'`
-3. After testing key-pair: `ALTER USER <SVC_ACCOUNT> SET PASSWORD = NULL`
+**Remediation highlights:**
+- Create tiered authentication policies (`human_user_mfa_policy`, `service_account_policy`)
+- Generate per-user `ALTER USER ... SET AUTHENTICATION POLICY` statements
+- Create admin-specific MFA policy for ACCOUNTADMIN users
+- Optionally set account-level authentication policy default
+
+### Domain 2 — Inactive & Stale Account Assessment
+
+Identifies dormant accounts that represent unauthorized access risk.
+
+| Finding ID | Severity | Description |
+|------------|----------|-------------|
+| `INACTIVE_USER` | MEDIUM | Users with no login activity for 90+ days |
+| `NEVER_LOGGED_IN` | LOW | Users created 30+ days ago who have never authenticated |
+| `STALE_PASSWORD` | HIGH | Passwords not rotated within 90 days |
+| `DISABLED_USER_WITH_GRANTS` | MEDIUM | Disabled users that still hold active role assignments |
+
+**Remediation highlights:**
+- Revoke admin roles from inactive users first
+- Generate `ALTER USER ... SET DISABLED = TRUE` commands
+- Create tracking table (`SECURITY_AUDIT.DISABLED_USERS`) and optional automated cleanup task
+- Force password reset with `MUST_CHANGE_PASSWORD = TRUE`
+- Disable accounts with passwords older than 365 days
+
+### Domain 3 — Failed Authentication Analysis
+
+Detects potential brute force attacks and suspicious login patterns.
+
+| Finding ID | Severity | Description |
+|------------|----------|-------------|
+| `BRUTE_FORCE_ATTEMPT` | HIGH | 5+ failed login attempts from the same user/IP in 7 days |
+| `UNKNOWN_IP_LOGIN_FAILURE` | MEDIUM | Failed logins from IP addresses never seen in successful logins |
+
+**Key queries target:** `SNOWFLAKE.ACCOUNT_USAGE.LOGIN_HISTORY` (last 7 days)
+
+**Remediation highlights:**
+- Block suspicious IPs via network policy (`BLOCKED_IP_LIST`)
+- Reset passwords for targeted user accounts
+- Configure password policy lockout (`PASSWORD_MAX_RETRIES`, `PASSWORD_LOCKOUT_TIME_MINS`)
+- Create automated brute force detection alert with email notification
+
+### Domain 4 — Authentication Method Assessment
+
+Provides a comprehensive view of how users authenticate and identifies weak patterns.
+
+| Finding / Assessment ID | Severity | Description |
+|------------------------|----------|-------------|
+| `AUTH_METHOD_DISTRIBUTION` | Info | Breakdown of auth methods: Password Only, Key-Pair Only, Password+Key-Pair, SSO/External Only |
+| `AUTH_FACTOR_USAGE` | Info | Login authentication factors used in the last 30 days |
+| `MFA_COVERAGE` | Info | MFA adoption percentage across all password-based users |
+| `MFA_BY_PRIVILEGE` | Info | MFA coverage segmented by role privilege level (Admin / System / Standard) |
+| `HUMAN_USER_NO_SSO` | MEDIUM | Human users authenticating via password instead of SSO |
+| `SERVICE_ACCOUNT_PASSWORD` | HIGH | Service accounts using password instead of key-pair authentication |
+
+**Remediation highlights:**
+- Migrate service accounts to RSA key-pair authentication (includes `openssl` key generation commands)
+- Set RSA public key and disable password for service accounts
+- Transition human users to SSO/SAML
+
+### Domain 5 — Data Exfiltration Risk Assessment
+
+Evaluates account-level protections against unauthorized data export.
+
+| Finding / Assessment ID | Severity | Description |
+|------------------------|----------|-------------|
+| `EXFIL_PREVENTION_DISABLED` | CRITICAL | `PREVENT_UNLOAD_TO_INLINE_URL` or `REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_*` not enabled |
+| `EXTERNAL_STAGE_RISK` | HIGH | External named stages that could allow data exfiltration |
+| `DATA_EXPORT_ACTIVITY` | Info | COPY/UNLOAD/GET operations in the last 30 days |
+| `LARGE_DATA_EXPORT` | MEDIUM | Individual export operations exceeding 1M rows in the last 7 days |
+
+**Remediation highlights:**
+- Enable exfiltration prevention parameters:
+  - `PREVENT_UNLOAD_TO_INLINE_URL = TRUE`
+  - `REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_CREATION = TRUE`
+  - `REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_OPERATION = TRUE`
+- Create approved storage integrations with restricted `STORAGE_ALLOWED_LOCATIONS`
+
+### Domain 6 — Private Link Assessment
+
+Assesses whether the account uses private connectivity (AWS PrivateLink / Azure Private Link) versus public internet.
+
+| Assessment ID | Description |
+|---------------|-------------|
+| `NETWORK_ACCESS_PATTERN` | Ratio of private IP vs. public IP logins in the last 30 days |
+| `PUBLIC_IP_INVENTORY` | Full inventory of public IPs accessing the account |
+
+**Remediation highlights:**
+- Retrieve Private Link configuration: `SYSTEM$GET_PRIVATELINK_CONFIG()`
+- AWS: Create VPC endpoint, configure DNS, update network policy, block public access
+- Azure: Create Private Endpoint, configure Private DNS zone, validate
+
+### Domain 7 — Network / Session / Password Policy Assessment
+
+Evaluates the account's network, session, and password policy posture.
+
+| Finding / Assessment ID | Severity | Description |
+|------------------------|----------|-------------|
+| `NO_NETWORK_POLICY` / `ALLOW_ALL_POLICY` | CRITICAL / HIGH | No network policy exists or a permissive ALLOW_ALL policy is in use |
+| `SESSION_DURATION` | Info | Users with sessions exceeding 8 hours |
+| `NO_SESSION_POLICY` | HIGH | No session timeout policy configured |
+| `PASSWORD_AGE_DISTRIBUTION` | Info | Breakdown of password ages across users |
+| `NO_PASSWORD_POLICY` | HIGH | No password complexity or rotation policy configured |
+
+**Remediation highlights:**
+- Create restrictive network policy from legitimate IP inventory
+- Test on a single user before applying at account level
+- Create tiered session policies: standard (60 min idle), admin (30 min idle), service (240 min idle)
+- Create enterprise password policy (14+ chars, 90-day rotation, lockout after 5 retries)
+- Create stricter admin password policy (16+ chars, 60-day rotation, lockout after 3 retries)
+
+### Domain 8 — Encryption & Tri-Secret Secure Assessment
+
+Validates encryption configuration and identifies potentially sensitive data.
+
+| Assessment ID | Description |
+|---------------|-------------|
+| `DATA_AT_REST` | Confirms Snowflake's default AES-256 encryption at rest |
+| `SENSITIVE_DATA_CANDIDATES` | Tables with names suggesting sensitive data (PII, SSN, CUSTOMER, PATIENT, FINANCIAL, CREDIT, PAYMENT) |
+
+**Checks performed:**
+- `SHOW PARAMETERS LIKE '%ENCRYPTION%' IN ACCOUNT`
+- `SHOW PARAMETERS LIKE '%PERIODIC_DATA_REKEYING%' IN ACCOUNT`
+
+### Domain 9 — RBAC Framework Evaluation
+
+Evaluates the role-based access control structure for security anti-patterns.
+
+| Finding / Assessment ID | Severity | Description |
+|------------------------|----------|-------------|
+| `ROLE_HIERARCHY_DEPTH` | Info | Maximum depth of the role hierarchy (warns if > 7 levels) |
+| `ROLE_PRIVILEGE_COUNT` | Info | Roles with excessive privilege counts (flags > 50 or > 100) |
+| `MULTI_ADMIN_ROLES` | HIGH | Users holding multiple admin roles (separation of duties concern) |
+| `ORPHANED_ROLE` | LOW | Roles with no users or parent roles assigned |
+| `DIRECT_USER_GRANT` | MEDIUM | Grants made directly to users instead of roles (RBAC anti-pattern) |
+
+**Remediation highlights:**
+- Create functional roles (`PLATFORM_ADMIN_ROLE`, `SECURITY_ADMIN_ROLE`, `DATA_ADMIN_ROLE`)
+- Revoke excess admin roles and assign functional roles instead
+- Implement ACCOUNTADMIN usage logging table
+- Transfer ownership of orphaned roles or drop them
+
+### Domain 10 — Network Security Assessment
+
+Provides a network-level view of account access patterns.
+
+| Finding / Assessment ID | Severity | Description |
+|------------------------|----------|-------------|
+| `IP_INVENTORY` | Info | Count of unique IPs, users, and total logins in 30 days |
+| `SUSPICIOUS_IP` | MEDIUM | IPs outside expected corporate ranges (non-RFC 1918) |
+
+### Domain 11 — Trust Center Integration
+
+Leverages Snowflake's built-in Trust Center to supplement manual domain checks with automated scanner findings.
+
+| Finding / Assessment ID | Severity | Description |
+|------------------------|----------|-------------|
+| `SCANNER_INVENTORY` | Info | Inventory of all Trust Center scanner packages and their enabled/disabled status |
+| `SCANNER_DISABLED` | HIGH | Scanner packages that are disabled (coverage gaps) |
+| `TC_FINDINGS_SEVERITY` | VARIES | Count of open Trust Center findings by severity |
+| `TC_FINDING_DETAIL` | VARIES | Full details of all open Trust Center findings |
+| `TC_AT_RISK_ENTITY` | VARIES | Specific entities (users, objects) at risk from open findings |
+| `TC_TREND` | Info | 30-day trend of open and resolved findings |
+| `SEC_ESSENTIALS` | VARIES | Open findings from the Security Essentials scanner |
+| `CIS_BENCHMARK` | VARIES | Open findings from the CIS Benchmarks scanner |
+| `THREAT_INTEL` | VARIES | Open findings from the Threat Intelligence scanner |
+
+**Three scanner packages evaluated:**
+1. **Security Essentials** — Baseline security hygiene (MFA readiness, network policy, authentication policy, passwordless readiness)
+2. **CIS Benchmarks** — Industry compliance framework (SSO, SCIM, key-pair rotation, admin controls, Tri-Secret Secure, data masking, row-access policies, data retention)
+3. **Threat Intelligence** — Active threat detection (suspicious IP connections, known bad actors, anomalous patterns)
+
+**Remediation highlights:**
+- Enable disabled scanner packages: `CALL SNOWFLAKE.TRUST_CENTER.ENABLE_SCANNER_PACKAGE('<PACKAGE_NAME>')`
+- Set scanner schedules: `CALL SNOWFLAKE.TRUST_CENTER.SET_SCANNER_SCHEDULE('<PACKAGE_NAME>', '<CRON>')`
+- Configure notification integrations for ongoing monitoring
+
+### Domain 12 — CIS Benchmark Extended Checks
+
+Direct validation of CIS Snowflake Benchmark controls not fully covered by Domains 1–10. These run regardless of Trust Center scanner status.
+
+| Finding ID | CIS Control | Severity | Description |
+|------------|-------------|----------|-------------|
+| `ADMIN_NO_EMAIL` | 1.11 | MEDIUM | ACCOUNTADMIN users without an email set (cannot receive security notifications) |
+| `ADMIN_DEFAULT_ROLE` | 1.12 | HIGH | Users with ACCOUNTADMIN set as their default role |
+| `KEY_ROTATION_NEEDED` | 1.7 | MEDIUM | Users with RSA keys that may need rotation (verify within 90 days) |
+| `ADMIN_OWNED_TASK` | 1.14–1.17 | HIGH | Tasks owned by admin roles instead of functional roles |
+| `MASKING_POLICY_COVERAGE` | 4.10 | MEDIUM | Number of masking policies and protected columns (flags zero if sensitive tables found) |
+| `ROW_ACCESS_COVERAGE` | 4.11 | MEDIUM | Number of row-access policies and protected tables |
+| `TRI_SECRET_NOT_ENABLED` | 4.9 | MEDIUM | Periodic data rekeying not enabled; Tri-Secret Secure not configured |
+| `RETENTION_CHECK` | 4.3–4.4 | LOW | Tables with zero Time Travel retention or extended retention > 7 days |
+
+**Remediation highlights:**
+- Set email for admin users: `ALTER USER <USER> SET EMAIL = 'admin@company.com'`
+- Change admin default role: `ALTER USER <USER> SET DEFAULT_ROLE = 'SYSADMIN'`
+- Transfer task ownership: `GRANT OWNERSHIP ON TASK ... TO ROLE <FUNCTIONAL_ROLE>`
+- Create masking policies for PII columns
+- Create row-access policies for multi-tenant data
+- Enable periodic rekeying: `ALTER ACCOUNT SET PERIODIC_DATA_REKEYING = TRUE`
 
 ---
 
-### Domain 5: Data Exfiltration Risk Assessment
+## Finding Severity Definitions
 
-**Focus:** Prevent unauthorized data export via external stages, COPY/UNLOAD, and account parameters.
-
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 5.1 | `EXFIL_PREVENTION_DISABLED` | **CRITICAL** | Account-level exfil prevention parameters not enabled |
-| 5.2 | `EXTERNAL_STAGE_RISK` | **HIGH** | External named stages that may allow data exfiltration |
-| 5.3 | `DATA_EXPORT_ACTIVITY` | Assessment | Recent COPY/UNLOAD/GET operations by user and role |
-| 5.4 | `LARGE_DATA_EXPORT` | MEDIUM | Exports exceeding 1M rows in the last 7 days |
-
-**Critical Account Parameters Checked:**
-```
-PREVENT_UNLOAD_TO_INLINE_URL
-REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_CREATION
-REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_OPERATION
-```
-
-**Key Data Sources:** `SNOWFLAKE.ACCOUNT_USAGE.STAGES`, `SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY`, Account parameters (`SHOW PARAMETERS`)
-
-**Remediation:** Enable all three exfil prevention parameters via `ALTER ACCOUNT SET`, create approved storage integrations, and restrict GRANT on integrations to specific roles.
+| Severity | Definition | Example Findings |
+|----------|------------|-----------------|
+| **CRITICAL** | Immediate risk of unauthorized access or data breach. Must be addressed within 24 hours. | Users without MFA, ACCOUNTADMIN without MFA, exfiltration prevention disabled, no network policy |
+| **HIGH** | Significant security gap that could lead to compromise if exploited. Remediate within 7 days. | Stale passwords, brute force attempts, service accounts using passwords, no session/password policy, admin default role, admin-owned tasks, multiple admin roles, Trust Center scanners disabled |
+| **MEDIUM** | Security weakness that should be scheduled for remediation within 30 days. | Inactive users, weak default roles, no SSO for human users, direct user grants, suspicious IPs, admin no email, key rotation, masking/row-access coverage, Tri-Secret Secure |
+| **LOW** | Best-practice improvement to address within 90 days. | Users who never logged in, orphaned roles, data retention configuration |
 
 ---
 
-### Domain 6: Private Link Assessment
+## Remediation Priority Matrix
 
-**Focus:** Assess whether Snowflake traffic flows over public internet or private network connectivity.
+The following matrix maps findings to remediation priorities with effort estimates:
 
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 6.1 | `NETWORK_ACCESS_PATTERN` | Assessment | Distribution of logins from private vs public IPs |
-| 6.2 | `PUBLIC_IP_INVENTORY` | Assessment | All public IPs accessing the account (last 30 days) |
-
-**Key Data Source:** `SNOWFLAKE.ACCOUNT_USAGE.LOGIN_HISTORY`
-
-**Private IP Detection:** IPs matching `10.x`, `172.16-31.x`, `192.168.x` ranges.
-
-**Remediation:** Configure AWS VPC Endpoint or Azure Private Endpoint, update DNS, create restrictive network policy for private IPs only.
-
----
-
-### Domain 7: Network / Session / Password Policy Assessment
-
-**Focus:** Evaluate security policies governing network access, session lifecycle, and password strength.
-
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 7.1 | `NO_NETWORK_POLICY` / `ALLOW_ALL_POLICY` | **CRITICAL** / **HIGH** | No network policy or overly permissive policy |
-| 7.2 | `NO_SESSION_POLICY` | **HIGH** | Sessions exceeding 8 hours without timeout policy |
-| 7.3 | `NO_PASSWORD_POLICY` | **HIGH** | No enterprise password policy configured |
-
-**Key Data Sources:** `SHOW NETWORK POLICIES`, `SNOWFLAKE.ACCOUNT_USAGE.SESSIONS`, `SNOWFLAKE.ACCOUNT_USAGE.USERS`
-
-**Network Policy Assessment Rules:**
-- Zero policies → **CRITICAL**
-- ALLOW_ALL exists → **HIGH**
-- Only narrow policies → Review for completeness
-
-**Remediation Provides:**
-- Enterprise password policy (14 char min, complexity, 90-day rotation, 12-history, lockout)
-- Admin password policy (16 char min, 60-day rotation, 24-history, stricter lockout)
-- Session policies: standard (60 min idle), admin (30 min idle), service (240 min idle)
-- Network policy creation from legitimate IP inventory
+| Finding | Severity | Effort | Priority | Timeline |
+|---------|----------|--------|----------|----------|
+| ACCOUNTADMIN without MFA | CRITICAL | Low | P0 | Immediate |
+| Users without MFA | CRITICAL | Low | P0 | Immediate |
+| Data Exfil Prevention Disabled | CRITICAL | Low | P1 | 24 hours |
+| No Network Policy | CRITICAL/HIGH | Medium | P1 | 24 hours |
+| No Password Policy | HIGH | Low | P1 | 24 hours |
+| Brute Force IPs | HIGH | Low | P1 | 24 hours |
+| Trust Center Scanners Disabled | HIGH | Low | P1 | 24 hours |
+| Stale Passwords | HIGH | Medium | P2 | 1 week |
+| Service Account Password Auth | HIGH | Medium | P2 | 1 week |
+| Session Policy | HIGH | Low | P2 | 1 week |
+| Admin Default Role | HIGH | Low | P2 | 1 week |
+| Admin-Owned Tasks | HIGH | Medium | P2 | 1 week |
+| Inactive Users | MEDIUM | Medium | P2 | 1 week |
+| RBAC Separation (Multi-Admin) | HIGH | High | P3 | 2 weeks |
+| Direct User Grants | MEDIUM | Medium | P3 | 2 weeks |
+| Human Users without SSO | MEDIUM | High | P3 | 2 weeks |
+| Private Link | HIGH | High | P3 | 1 month |
+| Masking Policy Coverage | MEDIUM | Medium | P3 | 1 month |
+| Row-Access Policy Coverage | MEDIUM | Medium | P3 | 1 month |
+| Key Rotation | MEDIUM | Medium | P3 | 1 month |
+| Tri-Secret Secure | MEDIUM | High | P3 | 1 month |
+| Orphaned Roles | LOW | Low | P3 | 90 days |
+| Data Retention | LOW | Low | P3 | 90 days |
 
 ---
 
-### Domain 8: Encryption & Tri-Secret Secure Assessment
+## Assessment Checklist
 
-**Focus:** Verify data-at-rest encryption and evaluate Tri-Secret Secure / periodic rekeying status.
-
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 8.1 | `DATA_AT_REST` | Assessment | Confirm AES-256 encryption (always compliant in Snowflake) |
-| 8.2 | `SENSITIVE_DATA_CANDIDATES` | Assessment | Tables with PII-like names (customer, SSN, payment, etc.) |
-
-**Table Name Patterns Scanned:** `%PII%`, `%SSN%`, `%CUSTOMER%`, `%PATIENT%`, `%FINANCIAL%`, `%CREDIT%`, `%PAYMENT%`
-
-**Account Parameters Checked:** `ENCRYPTION`, `PERIODIC_DATA_REKEYING`
-
----
-
-### Domain 9: RBAC Framework Evaluation
-
-**Focus:** Evaluate role hierarchy depth, privilege concentration, separation of duties, and RBAC anti-patterns.
-
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 9.1 | `ROLE_HIERARCHY_DEPTH` | Assessment | Recursive hierarchy depth (flag if > 7 levels) |
-| 9.2 | `ROLE_PRIVILEGE_COUNT` | Assessment | Roles with excessive privilege counts (>100 = HIGH, >50 = MEDIUM) |
-| 9.3 | `MULTI_ADMIN_ROLES` | **HIGH** | Users with multiple admin roles (separation of duties concern) |
-| 9.4 | `ORPHANED_ROLE` | LOW | Roles with no users or parent roles assigned |
-| 9.5 | `DIRECT_USER_GRANT` | MEDIUM | Privileges granted directly to users instead of roles |
-
-**Key Data Sources:** `SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_ROLES`, `SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_USERS`, `SNOWFLAKE.ACCOUNT_USAGE.ROLES`
-
-**RBAC Anti-Patterns Detected:**
-- Direct grants to users (bypasses role hierarchy)
-- Users with 2+ admin roles (ACCOUNTADMIN + SECURITYADMIN, etc.)
-- Orphaned roles (no members, no parent)
-- Roles with 100+ privileges (overly broad)
-- Hierarchy depth > 7 levels (performance and manageability)
-
-**Remediation:** Create functional roles (`PLATFORM_ADMIN_ROLE`, `SECURITY_ADMIN_ROLE`, `DATA_ADMIN_ROLE`), revoke excess admin roles, implement ACCOUNTADMIN usage logging table.
-
----
-
-### Domain 10: Network Security Assessment
-
-**Focus:** IP access inventory and detection of suspicious non-corporate IP ranges.
-
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 10.1 | `IP_INVENTORY` | Assessment | Total unique IPs, users, and logins (30 days) |
-| 10.2 | `SUSPICIOUS_IP` | MEDIUM | Access from IPs outside expected corporate ranges |
-
-**Key Data Source:** `SNOWFLAKE.ACCOUNT_USAGE.LOGIN_HISTORY`
-
----
-
-### Domain 11: Trust Center Integration
-
-**Focus:** Leverage Snowflake's native Trust Center for automated scanner findings, CIS Benchmarks, and Threat Intelligence.
-
-| Query ID | Finding ID | Severity | Description |
-|----------|-----------|----------|-------------|
-| 11.1 | `SCANNER_INVENTORY` | Assessment | Which scanner packages are enabled/disabled |
-| 11.2 | `TC_FINDINGS_SEVERITY` | Assessment | Open findings count by severity |
-| 11.3 | `TC_FINDING_DETAIL` | **VARIES** | Detailed open findings with suggested actions |
-| 11.4 | `TC_AT_RISK_ENTITY` | **VARIES** | Specific entities (users, tables) flagged by Trust Center |
-| 11.5 | `TC_TREND` | Assessment | 30-day trend of open vs resolved findings |
-| 11.6 | `SEC_ESSENTIALS` | **VARIES** | Security Essentials scanner findings (MFA, network, auth) |
-| 11.7 | `CIS_BENCHMARK` | **VARIES** | CIS Snowflake Benchmark scanner findings |
-| 11.8 | `THREAT_INTEL` | **VARIES** | Threat Intelligence findings (suspicious IPs, known bad actors) |
-
-**Key Data Sources:** `SNOWFLAKE.TRUST_CENTER.SCANNER_PACKAGES_VIEW`, `SNOWFLAKE.TRUST_CENTER.FINDINGS_VIEW`, `SNOWFLAKE.TRUST_CENTER.TIME_SERIES_DAILY_FINDINGS`
-
-**Three Scanner Packages (all should be enabled):**
-
-| Package | Purpose |
-|---------|---------|
-| **Security Essentials** | Baseline security hygiene (MFA readiness, network policy, auth policy, passwordless readiness) |
-| **CIS Benchmarks** | CIS Snowflake Benchmark controls (SSO, SCIM, key rotation, admin hygiene, encryption, masking, row-access) |
-| **Threat Intelligence** | Active threat detection (suspicious IPs, known bad actors, anomalous patterns) |
-
-**Trust Center Management SQL:**
-```sql
-CALL SNOWFLAKE.TRUST_CENTER.ENABLE_SCANNER_PACKAGE('<PACKAGE_NAME>');
-CALL SNOWFLAKE.TRUST_CENTER.DISABLE_SCANNER_PACKAGE('<PACKAGE_NAME>');
-CALL SNOWFLAKE.TRUST_CENTER.SET_SCANNER_SCHEDULE('<PACKAGE_NAME>', '<CRON_EXPRESSION>');
-CALL SNOWFLAKE.TRUST_CENTER.SET_NOTIFICATION_INTEGRATION('<PACKAGE>', '<INTEGRATION>');
-```
-
----
-
-### Domain 12: CIS Benchmark Extended Checks
-
-**Focus:** Direct validation of CIS Snowflake Benchmark controls not fully covered by Domains 1-10. These run regardless of Trust Center scanner status.
-
-| Query ID | Finding ID | CIS Control | Severity | Description |
-|----------|-----------|-------------|----------|-------------|
-| 12.1 | `ADMIN_NO_EMAIL` | CIS 1.11 | MEDIUM | ACCOUNTADMIN users without email (can't receive security notifications) |
-| 12.2 | `ADMIN_DEFAULT_ROLE` | CIS 1.12 | **HIGH** | ACCOUNTADMIN set as default role |
-| 12.3 | `KEY_ROTATION_NEEDED` | CIS 1.7 | MEDIUM | Users with RSA keys — verify 90-day rotation |
-| 12.4 | `ADMIN_OWNED_TASK` | CIS 1.14-1.17 | **HIGH** | Tasks owned by admin roles instead of functional roles |
-| 12.5 | `MASKING_POLICY_COVERAGE` | CIS 4.10 | MEDIUM | Assess data masking policy coverage (policy count, columns protected) |
-| 12.6 | `ROW_ACCESS_COVERAGE` | CIS 4.11 | MEDIUM | Assess row-access policy coverage (policy count, tables protected) |
-| 12.7 | `TRI_SECRET_NOT_ENABLED` | CIS 4.9 | MEDIUM | Periodic rekeying / Tri-Secret Secure status |
-| 12.8 | `RETENTION_CHECK` | CIS 4.3-4.4 | LOW | Tables with 0 retention (no recovery) or >7 days (cost impact) |
-
-**Key Data Sources:** `SNOWFLAKE.ACCOUNT_USAGE.USERS`, `SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_USERS`, `SNOWFLAKE.ACCOUNT_USAGE.TASKS`, `SNOWFLAKE.ACCOUNT_USAGE.POLICY_REFERENCES`, `SNOWFLAKE.ACCOUNT_USAGE.TABLES`, Account parameters
-
-**Remediation Examples:**
-- `ALTER USER <ADMIN> SET EMAIL = 'admin@company.com'`
-- `ALTER USER <USER> SET DEFAULT_ROLE = 'SYSADMIN'`
-- `GRANT OWNERSHIP ON TASK ... TO ROLE <FUNCTIONAL_ROLE> REVOKE CURRENT GRANTS`
-- Create masking policies: `CREATE MASKING POLICY pii_email_mask AS ...`
-- Enable rekeying: `ALTER ACCOUNT SET PERIODIC_DATA_REKEYING = TRUE`
-
----
-
-### Assessment Checklist
-
-Complete inventory of all findings checked during Phase 1, with their severity:
+This is the master checklist the scanner validates during Phase 1:
 
 | Area | Finding ID | Domain | Risk if Gap Found |
 |------|-----------|--------|-------------------|
@@ -430,319 +526,228 @@ Complete inventory of all findings checked during Phase 1, with their severity:
 | Role Sprawl | `ORPHANED_ROLE` | 9 | LOW |
 | Data Retention | `RETENTION_CHECK` | 12 | LOW |
 
-### Phase 1 Report Output
-
-| Property | Value |
-|----------|-------|
-| **Filename** | `Report-Security-Assessment-DD-MM-YYYY.html` |
-| **Location** | `snowflake-security-scanner/reports/` |
-
-**Required Sections:**
-- Report Generation Summary banner (TOP) with total Phase 1 elapsed time
-- Executive summary with total findings by severity
-- Detailed findings table per domain
-- Affected objects and discovery timestamps
-- Assessment checklist completion status
-
 ---
 
-## Phase 2 — Security Recommendations
+## Remediation Verification & Rollback
 
-Using exclusively Phase 1 findings as input, Phase 2 produces a prioritized, actionable remediation plan with SQL commands, effort estimates, and rollback procedures.
+### Verification Queries
 
-### Priority Classification
+After applying remediations, run these verification queries to confirm each fix:
 
-| Priority | SLA | Description |
-|----------|-----|-------------|
-| **P0 — Critical** | Within 24 hours | Immediate action required |
-| **P1 — High** | Within 7 days | Urgent remediation |
-| **P2 — Medium** | Within 30 days | Scheduled remediation |
-| **P3 — Low** | Within 90 days | Best-practice improvements |
+```sql
+-- MFA coverage
+SELECT NAME, HAS_MFA FROM SNOWFLAKE.ACCOUNT_USAGE.USERS WHERE HAS_PASSWORD = TRUE AND DELETED_ON IS NULL;
 
-### Remediation Priority Matrix
+-- Password policy
+SHOW PASSWORD POLICIES;
 
-| Finding | Severity | Effort | Priority | Timeline |
-|---------|----------|--------|----------|----------|
-| ACCOUNTADMIN without MFA | CRITICAL | Low | P0 | Immediate |
-| Data Exfil Prevention | CRITICAL | Low | P1 | 24 hours |
-| No Password Policy | HIGH | Low | P1 | 24 hours |
-| Brute Force IPs | HIGH | Low | P1 | 24 hours |
-| Stale Passwords | HIGH | Medium | P2 | 1 week |
-| Session Policy | HIGH | Low | P2 | 1 week |
-| Inactive Users | MEDIUM | Medium | P2 | 1 week |
-| RBAC Separation | HIGH | High | P3 | 2 weeks |
-| Network Policy | HIGH | Medium | P3 | 2 weeks |
-| Private Link | HIGH | High | P3 | 1 month |
+-- Session policy
+SHOW SESSION POLICIES;
 
-### Remediation Verification Checklist
+-- Network policy
+SHOW NETWORK POLICIES;
 
-After remediation is applied, verify each fix with these queries:
+-- Exfiltration prevention
+SHOW PARAMETERS LIKE 'PREVENT%' IN ACCOUNT;
+SHOW PARAMETERS LIKE 'REQUIRE_STORAGE%' IN ACCOUNT;
 
-| Check | Verification Query |
-|-------|-------------------|
-| MFA coverage | `SELECT NAME, HAS_MFA FROM SNOWFLAKE.ACCOUNT_USAGE.USERS WHERE HAS_PASSWORD = TRUE AND DELETED_ON IS NULL` |
-| Password policy | `SHOW PASSWORD POLICIES` |
-| Session policy | `SHOW SESSION POLICIES` |
-| Network policy | `SHOW NETWORK POLICIES` |
-| Exfil prevention | `SHOW PARAMETERS LIKE 'PREVENT%' IN ACCOUNT` |
-| Storage integration | `SHOW PARAMETERS LIKE 'REQUIRE_STORAGE%' IN ACCOUNT` |
-| Remaining inactive | `SELECT COUNT(*) FROM ... WHERE LAST_SUCCESS_LOGIN < DATEADD(day, -90, ...)` |
-| Admin role separation | `SELECT GRANTEE_NAME, COUNT(*) FROM ... WHERE ROLE IN (...) GROUP BY ... HAVING COUNT(*) > 1` |
+-- Remaining inactive users
+SELECT COUNT(*) AS remaining_inactive FROM SNOWFLAKE.ACCOUNT_USAGE.USERS
+WHERE DELETED_ON IS NULL AND DISABLED = FALSE AND LAST_SUCCESS_LOGIN < DATEADD(day, -90, CURRENT_TIMESTAMP());
+
+-- Users with multiple admin roles
+SELECT GRANTEE_NAME, COUNT(*) AS admin_role_count FROM SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_USERS
+WHERE ROLE IN ('ACCOUNTADMIN', 'SECURITYADMIN', 'SYSADMIN', 'USERADMIN', 'ORGADMIN') AND DELETED_ON IS NULL
+GROUP BY GRANTEE_NAME HAVING COUNT(*) > 1;
+```
 
 ### Rollback Procedures
 
-If any remediation causes issues, rollback commands are provided:
+If any remediation causes operational issues, use these rollback commands:
 
-| Remediation | Rollback Command |
-|------------|-----------------|
-| Authentication policy | `ALTER USER <USER> UNSET AUTHENTICATION POLICY` |
-| Password policy | `ALTER ACCOUNT UNSET PASSWORD POLICY` |
-| Session policy | `ALTER ACCOUNT UNSET SESSION POLICY` |
-| Network policy | `ALTER ACCOUNT UNSET NETWORK_POLICY` |
-| Disabled user | `ALTER USER <USER> SET DISABLED = FALSE` |
-| Exfil prevention | `ALTER ACCOUNT SET PREVENT_UNLOAD_TO_INLINE_URL = FALSE` |
-| Storage integration req | `ALTER ACCOUNT SET REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_CREATION = FALSE` |
+```sql
+-- Remove authentication policy from user
+ALTER USER <USER> UNSET AUTHENTICATION POLICY;
 
-### Phase 2 Report Output
+-- Remove account-level password policy
+ALTER ACCOUNT UNSET PASSWORD POLICY;
 
-| Property | Value |
-|----------|-------|
-| **Filename** | `Report-Security-Recommendation-DD-MM-YYYY.html` |
-| **Location** | `snowflake-security-scanner/reports/` |
+-- Remove account-level session policy
+ALTER ACCOUNT UNSET SESSION POLICY;
 
-**Required Sections:**
-- Report Generation Summary banner (TOP) with total Phase 2 elapsed time
-- Reference to source Phase 1 assessment report filename
-- Prioritized recommendation table (P0 through P3)
-- Detailed fix instructions per finding with SQL commands
-- Estimated remediation effort
-- Rollback procedures
-- Verification checklist
-- Post-remediation monitoring task
+-- Remove account-level network policy
+ALTER ACCOUNT UNSET NETWORK_POLICY;
 
----
+-- Re-enable disabled user
+ALTER USER <USER> SET DISABLED = FALSE;
 
-## Phase 3 — Compliance Dashboard
+-- Revert exfiltration prevention
+ALTER ACCOUNT SET PREVENT_UNLOAD_TO_INLINE_URL = FALSE;
+ALTER ACCOUNT SET REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_CREATION = FALSE;
+```
 
-### Dashboard Panels
+### Post-Remediation Monitoring
 
-| Panel | Content |
-|-------|---------|
-| **Category Breakdown** | Finding count, completion %, and status for each security category |
-| **Priority Tracking** | Remediation timeline adherence for P0–P3 against SLA windows |
-| **Risk Flagging** | Overdue items (SLA breached) and at-risk items (within 48 hours of expiry) |
-| **Overall Health Score** | Single composite compliance percentage |
+Set up a recurring task to monitor ongoing compliance:
 
-**Security Categories in Dashboard:**
-
-| # | Category | Covers |
-|---|----------|--------|
-| 1 | Access Control | User MFA, inactive accounts, stale passwords |
-| 2 | Authentication | Auth methods, SSO adoption, service account auth |
-| 3 | Network Security | Network policies, Private Link, IP access patterns |
-| 4 | Data Protection | Exfil prevention, external stages, export activity |
-| 5 | RBAC | Role hierarchy, privilege sprawl, admin separation |
-| 6 | Encryption | AES-256 compliance, Tri-Secret Secure, periodic rekeying |
-| 7 | Auditing | Session policies, password policies, monitoring |
-| 8 | Trust Center | Security Essentials, CIS Benchmarks, Threat Intelligence |
-| 9 | CIS Extended | Masking policies, row-access policies, key rotation, admin hygiene, data retention |
-
-### Visual Indicators and Scoring
-
-| Indicator | Description |
-|-----------|-------------|
-| Progress bars | Per priority bucket, per category, and overall remediation |
-| Health score | Single composite percentage across all categories |
-| Risk highlights | Color-coded: red (overdue), amber (at-risk within 48h), green (compliant) |
-
-### Phase 3 Report Output
-
-| Property | Value |
-|----------|-------|
-| **Filename** | `Report-Compliance-Dashboard-DD-MM-YYYY.html` |
-| **Location** | `snowflake-security-scanner/reports/` |
-
-**Technical Requirements:**
-- Fully interactive, self-contained HTML
-- No external dependencies
-- Refresh-ready for ongoing progress tracking
-- Suitable for executive presentation
-- Print-friendly styling
+```sql
+CREATE OR REPLACE TASK security_compliance_check
+    WAREHOUSE = COMPUTE_WH
+    SCHEDULE = 'USING CRON 0 8 * * 1 UTC'
+AS BEGIN END;
+```
 
 ---
 
-## SQL Query Inventory
+## Error Handling & Self-Healing
 
-Complete inventory of all SQL queries executed during the assessment:
+The scanner includes a built-in self-healing mechanism to maximize assessment coverage even when individual queries fail.
 
-| Domain | Query ID | Target | Finding ID | Severity |
-|--------|----------|--------|------------|----------|
-| 1 | 1.1 | USERS | `USERS_WITHOUT_MFA` | CRITICAL |
-| 1 | 1.2 | USERS + GRANTS_TO_USERS | `ACCOUNTADMIN_NO_MFA` | CRITICAL |
-| 1 | 1.3 | USERS | `WEAK_DEFAULT_ROLE` | MEDIUM |
-| 2 | 2.1 | USERS | `INACTIVE_USER` | MEDIUM |
-| 2 | 2.2 | USERS | `NEVER_LOGGED_IN` | LOW |
-| 2 | 2.3 | USERS | `STALE_PASSWORD` | HIGH |
-| 2 | 2.4 | USERS + GRANTS_TO_USERS | `DISABLED_USER_WITH_GRANTS` | MEDIUM |
-| 3 | 3.1 | LOGIN_HISTORY | `BRUTE_FORCE_ATTEMPT` | HIGH |
-| 3 | 3.2 | LOGIN_HISTORY | `UNKNOWN_IP_LOGIN_FAILURE` | MEDIUM |
-| 4 | 4.1 | USERS | `AUTH_METHOD_DISTRIBUTION` | Assessment |
-| 4 | 4.2 | LOGIN_HISTORY | `AUTH_FACTOR_USAGE` | Assessment |
-| 4 | 4.3 | USERS | `MFA_COVERAGE` | Assessment |
-| 4 | 4.4 | USERS + GRANTS_TO_USERS | `MFA_BY_PRIVILEGE` | Assessment |
-| 4 | 4.5 | USERS | `HUMAN_USER_NO_SSO` | MEDIUM |
-| 4 | 4.6 | USERS | `SERVICE_ACCOUNT_PASSWORD` | HIGH |
-| 5 | 5.1 | Account parameters | `EXFIL_PREVENTION_DISABLED` | CRITICAL |
-| 5 | 5.2 | STAGES | `EXTERNAL_STAGE_RISK` | HIGH |
-| 5 | 5.3 | QUERY_HISTORY | `DATA_EXPORT_ACTIVITY` | Assessment |
-| 5 | 5.4 | QUERY_HISTORY | `LARGE_DATA_EXPORT` | MEDIUM |
-| 6 | 6.1 | LOGIN_HISTORY | `NETWORK_ACCESS_PATTERN` | Assessment |
-| 6 | 6.2 | LOGIN_HISTORY | `PUBLIC_IP_INVENTORY` | Assessment |
-| 7 | 7.1 | SHOW NETWORK POLICIES | `NO_NETWORK_POLICY` | CRITICAL/HIGH |
-| 7 | 7.2 | SESSIONS | `NO_SESSION_POLICY` | Assessment |
-| 7 | 7.3 | USERS | `NO_PASSWORD_POLICY` | Assessment |
-| 8 | 8.1 | Static check | `DATA_AT_REST` | Assessment |
-| 8 | 8.2 | TABLES | `SENSITIVE_DATA_CANDIDATES` | Assessment |
-| 9 | 9.1 | GRANTS_TO_ROLES (recursive) | `ROLE_HIERARCHY_DEPTH` | Assessment |
-| 9 | 9.2 | GRANTS_TO_ROLES | `ROLE_PRIVILEGE_COUNT` | Assessment |
-| 9 | 9.3 | GRANTS_TO_USERS | `MULTI_ADMIN_ROLES` | HIGH |
-| 9 | 9.4 | ROLES + GRANTS | `ORPHANED_ROLE` | LOW |
-| 9 | 9.5 | GRANTS_TO_USERS | `DIRECT_USER_GRANT` | MEDIUM |
-| 10 | 10.1 | LOGIN_HISTORY | `IP_INVENTORY` | Assessment |
-| 10 | 10.2 | LOGIN_HISTORY | `SUSPICIOUS_IP` | MEDIUM |
-| 11 | 11.1 | SCANNER_PACKAGES_VIEW | `SCANNER_INVENTORY` | Assessment |
-| 11 | 11.2 | FINDINGS_VIEW | `TC_FINDINGS_SEVERITY` | Assessment |
-| 11 | 11.3 | FINDINGS_VIEW | `TC_FINDING_DETAIL` | VARIES |
-| 11 | 11.4 | FINDINGS_VIEW (FLATTEN) | `TC_AT_RISK_ENTITY` | VARIES |
-| 11 | 11.5 | TIME_SERIES_DAILY_FINDINGS | `TC_TREND` | Assessment |
-| 11 | 11.6 | FINDINGS_VIEW | `SEC_ESSENTIALS` | VARIES |
-| 11 | 11.7 | FINDINGS_VIEW | `CIS_BENCHMARK` | VARIES |
-| 11 | 11.8 | FINDINGS_VIEW | `THREAT_INTEL` | VARIES |
-| 12 | 12.1 | USERS + GRANTS_TO_USERS | `ADMIN_NO_EMAIL` | MEDIUM |
-| 12 | 12.2 | USERS | `ADMIN_DEFAULT_ROLE` | HIGH |
-| 12 | 12.3 | USERS | `KEY_ROTATION_NEEDED` | MEDIUM |
-| 12 | 12.4 | TASKS | `ADMIN_OWNED_TASK` | HIGH |
-| 12 | 12.5 | POLICY_REFERENCES | `MASKING_POLICY_COVERAGE` | Assessment |
-| 12 | 12.6 | POLICY_REFERENCES | `ROW_ACCESS_COVERAGE` | Assessment |
-| 12 | 12.7 | Account parameters | `TRI_SECRET_NOT_ENABLED` | MEDIUM |
-| 12 | 12.8 | TABLES | `RETENTION_CHECK` | LOW |
+### How It Works
 
----
+1. **Auto-Recovery:** If any SQL query or workflow step fails, the scanner does not halt. It automatically diagnoses the root cause, applies a fix, and retries.
 
-## Data Sources
+2. **Inline Logging:** For every failed-and-recovered step, the scanner logs within the relevant phase report:
+   - Step name / query identifier that failed
+   - Exact error message received from Snowflake
+   - Root cause diagnosis
+   - Corrective fix applied
+   - Retry outcome (Success / Failed after retry)
 
-All queries target these Snowflake system views:
+3. **Skill File Updates:** When a query failure is successfully resolved, the corrected query is written back to the SKILL.md file with an inline comment:
+   ```sql
+   -- [FIXED on <DD-MM-YYYY>]: <concise description of what was corrected and why>
+   ```
 
-| Schema | View | Used By Domains |
-|--------|------|-----------------|
-| `SNOWFLAKE.ACCOUNT_USAGE` | `USERS` | 1, 2, 4, 7, 8, 12 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `GRANTS_TO_USERS` | 1, 2, 4, 9, 12 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `GRANTS_TO_ROLES` | 9 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `ROLES` | 9 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `LOGIN_HISTORY` | 3, 4, 6, 7, 10 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `SESSIONS` | 7 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `QUERY_HISTORY` | 5 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `STAGES` | 5 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `TABLES` | 8, 12 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `TASKS` | 12 |
-| `SNOWFLAKE.ACCOUNT_USAGE` | `POLICY_REFERENCES` | 12 |
-| `SNOWFLAKE.TRUST_CENTER` | `SCANNER_PACKAGES_VIEW` | 11 |
-| `SNOWFLAKE.TRUST_CENTER` | `FINDINGS_VIEW` | 11 |
-| `SNOWFLAKE.TRUST_CENTER` | `TIME_SERIES_DAILY_FINDINGS` | 11 |
+4. **Graceful Degradation:** If a step fails and cannot be recovered after retry, it is marked as **SKIPPED** with a clear root cause explanation. The scanner continues with remaining steps and flags the skipped item in the final report under a "Manual Review Required" section.
 
----
+5. **Self-Healing Summary:** All self-healing actions are consolidated into a dedicated "Self-Healing Summary" section appended to the Phase 1 and Phase 2 reports, listing every corrected query/step, the fix applied, and the final resolution status.
 
-## Finding Severity Definitions
+### Known Historical Fixes
 
-| Severity | Description | Expected SLA |
-|----------|-------------|-------------|
-| **CRITICAL** | Immediate security risk — active exploitation possible, no compensating controls | P0: 24 hours |
-| **HIGH** | Significant risk — missing fundamental security controls | P1: 7 days |
-| **MEDIUM** | Moderate risk — security best practice not followed | P2: 30 days |
-| **LOW** | Minor risk — improvement opportunity, housekeeping | P3: 90 days |
-| **Assessment** | Informational — no direct risk, provides context for other findings | N/A |
+The following queries have been corrected through the self-healing mechanism:
+
+| Date | Query | Fix Applied |
+|------|-------|-------------|
+| 18-02-2026 | 1.1 `USERS_WITHOUT_MFA` | Changed `USER_NAME` to `NAME` (correct column in USERS table) |
+| 18-02-2026 | 1.2 `ACCOUNTADMIN_NO_MFA` | Changed `u.USER_NAME` to `u.NAME` (correct column in USERS table) |
+| 18-02-2026 | 2.1 `INACTIVE_USER` | Changed `USER_NAME` to `NAME` (correct column in USERS table) |
 
 ---
 
 ## Execution Rules
 
-| # | Rule |
-|---|------|
-| 1 | Run all three phases strictly sequentially — no skipping, merging, or parallelizing |
-| 2 | Scan all 12 security domains in Phase 1 — none may be omitted |
-| 3 | Capture and display total elapsed time for Phase 1 and Phase 2 individually |
-| 4 | Substitute `DD-MM-YYYY` with today's actual date in all filenames |
-| 5 | All HTML reports must be professionally styled, print-friendly, executive-ready |
-| 6 | No DDL, DML, or configuration changes — assessment and documentation only |
-| 7 | Save all reports exclusively to `snowflake-security-scanner/reports/` |
-| 8 | Display "Report Generation Summary" banner at TOP of Phase 1 and Phase 2 reports |
+1. All three phases execute **strictly sequentially** — do not skip, merge, or parallelize.
+2. Total elapsed time for Phase 1 and Phase 2 is captured and prominently displayed in each report.
+3. `<DD-MM-YYYY>` in file names is replaced with the actual date of execution.
+4. All HTML reports are professionally styled, print-friendly, and stakeholder-ready.
+5. **No DDL, DML, or configuration changes** are executed — assessment and documentation only.
+6. All reports are saved exclusively to the `snowflake-security-scanner/reports/` folder.
+7. Each phase report includes a "Report Generation Summary" banner at the top.
 
 ---
 
-## Error Handling and Self-Healing
+## Report Output Specifications
 
-The skill includes a built-in self-healing mechanism for query failures:
+### Phase 1 — Security Assessment Report
 
-### Failure Response Flow
+| Property | Value |
+|----------|-------|
+| **File name** | `Report-Security-Assessment-<DD-MM-YYYY>.html` |
+| **Location** | `snowflake-security-scanner/reports/` |
+| **Format** | Self-contained HTML, no external dependencies |
+| **Contents** | Executive summary, finding counts by severity, detailed findings per domain, affected objects, timestamps, report generation summary banner |
 
-```
-Query Fails ──► Diagnose Root Cause ──► Apply Fix ──► Retry
-                                                        │
-                                         ┌──────────────┤
-                                         ▼              ▼
-                                      Success        Failed Again
-                                         │              │
-                                  Log & Continue    Mark SKIPPED
-                                                        │
-                                              Flag in "Manual Review
-                                              Required" section
-```
+### Phase 2 — Security Recommendation Report
 
-### What Gets Logged for Each Failure
+| Property | Value |
+|----------|-------|
+| **File name** | `Report-Security-Recommendation-<DD-MM-YYYY>.html` |
+| **Location** | `snowflake-security-scanner/reports/` |
+| **Format** | Self-contained HTML, no external dependencies |
+| **Contents** | Reference to Phase 1 report, prioritized recommendations (P0–P3), remediation SQL per finding, effort estimates, rollback procedures, verification queries, report generation summary banner |
 
-| Field | Description |
-|-------|-------------|
-| Step name / query ID | Which query or step failed |
-| Error message | Exact Snowflake error |
-| Root cause diagnosis | Why it failed |
-| Corrective fix | What was changed |
-| Retry outcome | Success or Failed after retry |
+### Phase 3 — Compliance Dashboard
 
-### Self-Healing Actions
-
-- On successful recovery: the corrected query is updated in the skill file with an inline comment:
-  ```sql
-  -- [FIXED on DD-MM-YYYY]: <description of what was corrected and why>
-  ```
-- All self-healing actions are consolidated into a "Self-Healing Summary" section appended to Phase 1 and Phase 2 reports
-- If a step fails and cannot be recovered: marked as SKIPPED with clear root cause, flagged under "Manual Review Required" section
+| Property | Value |
+|----------|-------|
+| **File name** | `Report-Compliance-Dashboard-<DD-MM-YYYY>.html` |
+| **Location** | `snowflake-security-scanner/reports/` |
+| **Format** | Interactive self-contained HTML, no external dependencies |
+| **Contents** | Category breakdown, priority tracking with SLA adherence, progress bars/charts, risk flagging for overdue items, overall compliance health score |
 
 ---
 
-## Report File Inventory
+## Data Sources
 
-| Phase | Filename Pattern | Description |
-|-------|-----------------|-------------|
-| Phase 1 | `Report-Security-Assessment-DD-MM-YYYY.html` | Security findings across all 12 domains |
-| Phase 2 | `Report-Security-Recommendation-DD-MM-YYYY.html` | Prioritized remediation plan with SQL and rollback |
-| Phase 3 | `Report-Compliance-Dashboard-DD-MM-YYYY.html` | Interactive compliance tracking dashboard |
+All scanner queries are read-only and target the following Snowflake system views:
 
-All reports saved to: `snowflake-security-scanner/reports/`
+| View / Command | Domains Used In | Purpose |
+|----------------|----------------|---------|
+| `SNOWFLAKE.ACCOUNT_USAGE.USERS` | 1, 2, 4, 7, 12 | User account metadata, MFA status, password age, login history |
+| `SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_USERS` | 1, 2, 9, 12 | Role assignments to users |
+| `SNOWFLAKE.ACCOUNT_USAGE.GRANTS_TO_ROLES` | 9 | Role-to-role hierarchy |
+| `SNOWFLAKE.ACCOUNT_USAGE.ROLES` | 9 | Role definitions |
+| `SNOWFLAKE.ACCOUNT_USAGE.LOGIN_HISTORY` | 3, 4, 6, 7, 10 | Authentication events, IP addresses, factors |
+| `SNOWFLAKE.ACCOUNT_USAGE.SESSIONS` | 7 | Session duration and metadata |
+| `SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY` | 5 | COPY/UNLOAD/GET operations, large exports |
+| `SNOWFLAKE.ACCOUNT_USAGE.STAGES` | 5 | External stage inventory |
+| `SNOWFLAKE.ACCOUNT_USAGE.TABLES` | 8, 12 | Table metadata, sensitive data candidates, retention settings |
+| `SNOWFLAKE.ACCOUNT_USAGE.TASKS` | 12 | Task ownership |
+| `SNOWFLAKE.ACCOUNT_USAGE.POLICY_REFERENCES` | 12 | Masking and row-access policy bindings |
+| `SNOWFLAKE.TRUST_CENTER.SCANNER_PACKAGES_VIEW` | 11 | Trust Center scanner inventory |
+| `SNOWFLAKE.TRUST_CENTER.FINDINGS_VIEW` | 11 | Trust Center findings |
+| `SNOWFLAKE.TRUST_CENTER.TIME_SERIES_DAILY_FINDINGS` | 11 | Findings trend data |
+| `SHOW PARAMETERS IN ACCOUNT` | 5, 7, 8, 12 | Account-level configuration parameters |
+| `SHOW NETWORK POLICIES` | 7 | Network policy inventory |
+
+**Note:** `SNOWFLAKE.ACCOUNT_USAGE` views have a latency of up to 45 minutes. Findings reflect data available at query time, not real-time state.
 
 ---
 
-## Troubleshooting
+## Frequently Asked Questions
 
-| Issue | Cause | Resolution |
-|-------|-------|------------|
-| Permission errors on ACCOUNT_USAGE views | Insufficient role | Switch to `ACCOUNTADMIN` |
-| TRUST_CENTER views not found | Trust Center not enabled or role lacks access | Enable Trust Center scanners; log Domain 11 queries as SKIPPED |
-| `SCANNER_PACKAGES_VIEW` returns 0 rows | No scanner packages installed | Call `ENABLE_SCANNER_PACKAGE()` for each package |
-| Query returns 0 findings for a domain | No security issues in that domain | Expected — record as "No findings" |
-| SESSIONS view query is slow | Large session history | Add date filter: `DATEADD(day, -7, ...)` |
-| `GRANTS_TO_ROLES` recursive CTE times out | Very deep or wide role hierarchy | Reduce `depth < 10` to `depth < 5` |
-| LOGIN_HISTORY subquery in 3.2 is slow | Large login history | Reduce lookback window for the subquery |
-| Phase 2 references missing findings | Phase 1 incomplete | Ensure Phase 1 completes fully before Phase 2 |
-| Reports not in expected folder | Path mismatch | Verify `snowflake-security-scanner/reports/` |
-| Self-healing loop | Query cannot be auto-fixed | Marked as SKIPPED in "Manual Review Required" section |
-| HTML reports display issues | Browser compatibility | Use a modern browser (Chrome, Firefox, Edge) |
+### Q: Do I need ACCOUNTADMIN to run the scanner?
+
+**A:** ACCOUNTADMIN is recommended for full coverage. A custom role with `IMPORTED PRIVILEGES` on the `SNOWFLAKE` database can also work, but some Trust Center queries and `SHOW PARAMETERS` commands may require higher privileges.
+
+### Q: Will the scanner make any changes to my account?
+
+**A:** No. The scanner is strictly read-only. It executes `SELECT` queries and `SHOW` commands only. All remediation SQL is provided as documentation — it is never executed automatically.
+
+### Q: How long does a full scan take?
+
+**A:** Typically 5–15 minutes depending on account size and query latency. Phase 1 (assessment) takes the longest. Elapsed time is captured and displayed in each report.
+
+### Q: What happens if a query fails during the scan?
+
+**A:** The self-healing mechanism auto-diagnoses, fixes, and retries. If recovery fails, the step is marked as SKIPPED and flagged for manual review. The scan continues with remaining checks.
+
+### Q: Can I run individual domains instead of the full scan?
+
+**A:** The skill is designed to run all 12 domains sequentially. However, you can ask Cortex Code to "run only Domain 1" or similar — the individual SQL queries are self-contained and can be executed independently.
+
+### Q: How often should I run the scanner?
+
+**A:** Recommended cadence:
+- **Weekly:** For accounts with active development and frequent user changes
+- **Monthly:** For stable production accounts
+- **On-demand:** After significant changes (role restructuring, new integrations, security incidents)
+
+### Q: Where are the reports saved?
+
+**A:** All HTML reports are saved to `snowflake-security-scanner/reports/` in the workspace. File names include the execution date for version tracking.
+
+### Q: Does the scanner integrate with Snowflake Trust Center?
+
+**A:** Yes. Domain 11 queries Trust Center views for automated scanner findings, CIS Benchmark compliance, and Threat Intelligence detection. This supplements the manual checks in Domains 1–10.
+
+### Q: What CIS Benchmark controls are covered?
+
+**A:** The scanner covers these CIS Snowflake Benchmark controls directly or via Trust Center:
+- 1.1 (SSO configuration), 1.2 (SCIM), 1.3 (password unset for SSO), 1.7 (key-pair rotation), 1.9 (admin idle timeout), 1.11 (admin email), 1.12 (admin default role), 1.14–1.17 (admin-owned tasks)
+- 4.3–4.4 (data retention), 4.9 (Tri-Secret Secure), 4.10 (data masking), 4.11 (row-access policies)
+
+### Q: Can the scanner detect active threats?
+
+**A:** Domain 3 detects brute force attempts and unknown IP login failures. Domain 11 (Trust Center Threat Intelligence) provides additional active threat detection for suspicious IP connections, known bad actors, and anomalous patterns.
