@@ -1,43 +1,49 @@
-# Snowflake Cost Optimization Skill — Documentation
+# Snowflake Cost Optimization — Documentation
 
-**Skill Name:** `snowflake-cost-optimization`
-**File:** `SKILL.md`
-**Last Updated:** April 2026
+**Author:** Rajiv Gupta
+**LinkedIn:** [https://www.linkedin.com/in/rajiv-gupta-618b0228/](https://www.linkedin.com/in/rajiv-gupta-618b0228/)
+**Version:** 1.0
+**Last Updated:** April 22, 2026
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Purpose and Use Cases](#purpose-and-use-cases)
+2. [Architecture](#architecture)
 3. [Prerequisites](#prerequisites)
-4. [Trigger Keywords](#trigger-keywords)
-5. [Cost Categories](#cost-categories)
-6. [Three-Phase Workflow](#three-phase-workflow)
-7. [Phase 1 — Cost Optimization Assessment](#phase-1--cost-optimization-assessment)
+4. [Quick Start](#quick-start)
+5. [Trigger Keywords](#trigger-keywords)
+6. [Cost Categories](#cost-categories)
+7. [Three-Phase Workflow](#three-phase-workflow)
+8. [Phase 1 — Cost Optimization Assessment](#phase-1--cost-optimization-assessment)
    - [Category 1: Compute (Warehouse) Costs](#category-1-compute-warehouse-costs)
    - [Category 2: Storage Costs](#category-2-storage-costs)
    - [Category 3: Serverless Feature Costs](#category-3-serverless-feature-costs)
    - [Category 4: AI Services Costs (Cortex)](#category-4-ai-services-costs-cortex)
    - [Finding Capture Format](#finding-capture-format)
    - [Phase 1 Report Output](#phase-1-report-output)
-8. [Phase 2 — Cost Optimization Recommendations](#phase-2--cost-optimization-recommendations)
+9. [Phase 2 — Cost Optimization Recommendations](#phase-2--cost-optimization-recommendations)
    - [Priority Classification](#priority-classification)
    - [Recommendation Structure](#recommendation-structure)
    - [Category-Specific Remediation](#category-specific-remediation)
    - [Phase 2 Report Output](#phase-2-report-output)
-9. [Phase 3 — Compliance Dashboard](#phase-3--compliance-dashboard)
-   - [Dashboard Panels](#dashboard-panels)
-   - [Visual Indicators and Scoring](#visual-indicators-and-scoring)
-   - [Phase 3 Report Output](#phase-3-report-output)
-10. [SQL Query Reference](#sql-query-reference)
-11. [AI Model Credit Rate Tiers](#ai-model-credit-rate-tiers)
-12. [Optimization Checklists](#optimization-checklists)
-13. [AI Cost Control Best Practices](#ai-cost-control-best-practices)
-14. [Execution Rules](#execution-rules)
-15. [Error Handling and Self-Healing](#error-handling-and-self-healing)
-16. [Report File Inventory](#report-file-inventory)
-17. [Troubleshooting](#troubleshooting)
+10. [Phase 3 — Compliance Dashboard](#phase-3--compliance-dashboard)
+    - [Dashboard Panels](#dashboard-panels)
+    - [Visual Indicators and Scoring](#visual-indicators-and-scoring)
+    - [Phase 3 Report Output](#phase-3-report-output)
+11. [SQL Query Reference](#sql-query-reference)
+12. [AI Model Credit Rate Tiers](#ai-model-credit-rate-tiers)
+13. [Optimization Checklists](#optimization-checklists)
+14. [AI Cost Control Best Practices](#ai-cost-control-best-practices)
+15. [Finding Severity and Priority Matrix](#finding-severity-and-priority-matrix)
+16. [Execution Rules](#execution-rules)
+17. [Error Handling and Self-Healing](#error-handling-and-self-healing)
+18. [Report File Inventory](#report-file-inventory)
+19. [Data Sources](#data-sources)
+20. [Post-Run Monitoring](#post-run-monitoring)
+21. [Troubleshooting](#troubleshooting)
+22. [Frequently Asked Questions](#frequently-asked-questions)
 
 ---
 
@@ -47,19 +53,88 @@ The **Snowflake Cost Optimization** skill performs a comprehensive, three-phase 
 
 All analysis is **read-only**. No DDL, DML, or configuration changes are executed at any point. The skill uses a default rate of **$3 per credit** for all USD estimates unless account-specific pricing is provided.
 
+### Key Capabilities
+
+- Scans 4 cost categories: Compute, Storage, Serverless, and AI Services (Cortex).
+- Executes 7 SQL queries during Phase 1 (1 compute + 6 Cortex/AI).
+- Evaluates warehouse configuration (AUTO_SUSPEND, AUTO_RESUME, sizing, scaling policy, resource monitors).
+- Assesses storage efficiency (Time Travel, Fail-Safe, staged files, unused tables).
+- Audits serverless feature ROI (Snowpipe, clustering, materialized views, search optimization, replication).
+- Analyzes Cortex AI token consumption by model tier with downgrade savings estimates.
+- Produces three sequentially-dependent HTML reports: Assessment, Recommendations, Compliance Dashboard.
+- Includes self-healing retry logic for failed queries.
+
+### What This Skill Does NOT Do
+
+- It does **not** execute any DDL, DML, or configuration changes.
+- It does **not** alter warehouse settings, drop objects, or modify account parameters.
+- It is strictly an assessment and documentation tool.
+
 ---
 
-## Purpose and Use Cases
+## Architecture
 
-| Use Case | Description |
-|----------|-------------|
-| **Monthly Cost Review** | Run a full scan to identify and quantify all cost optimization opportunities |
-| **Warehouse Right-Sizing** | Detect oversized or misconfigured warehouses consuming unnecessary credits |
-| **Storage Cleanup** | Find unused tables, excessive Time Travel retention, orphaned stages |
-| **Serverless Audit** | Evaluate ROI of automatic clustering, materialized views, search optimization |
-| **AI/Cortex Spend Analysis** | Track token consumption, model costs, and identify model downgrade opportunities |
-| **Executive Reporting** | Generate stakeholder-ready compliance dashboards with health scores |
-| **Budget Governance** | Establish baseline spend metrics and track remediation savings over time |
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                    Snowflake Cost Optimization                       │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  PHASE 1: COST ASSESSMENT (4 Categories, 7 Queries)                 │
+│                                                                      │
+│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐         │
+│  │  Category 1    │  │  Category 2    │  │  Category 3    │         │
+│  │  COMPUTE       │  │  STORAGE       │  │  SERVERLESS    │         │
+│  │  ┌──────────┐  │  │  · Active      │  │  · Snowpipe    │         │
+│  │  │ Query 1a │  │  │  · Time Travel │  │  · Clustering  │         │
+│  │  │ Top WH   │  │  │  · Fail-Safe   │  │  · Mat. Views  │         │
+│  │  │ Spend    │  │  │  · Stages      │  │  · Search Opt  │         │
+│  │  └──────────┘  │  │  · Unused Obj  │  │  · Replication │         │
+│  └───────┬────────┘  └───────┬────────┘  └───────┬────────┘         │
+│          │                   │                    │                   │
+│  ┌───────┴───────────────────┴────────────────────┴──────────┐      │
+│  │                   Category 4: AI SERVICES                  │      │
+│  │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐  │      │
+│  │  │Q4a: AI │ │Q4b: SQL│ │Q4c:    │ │Q4d:    │ │Q4e: All│  │      │
+│  │  │Credits │ │Func by │ │Analyst │ │Search  │ │AI/ML   │  │      │
+│  │  │Usage   │ │Model   │ │Usage   │ │Costs   │ │Summary │  │      │
+│  │  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘  │      │
+│  │  ┌────────┐                                                │      │
+│  │  │Q4f:    │                                                │      │
+│  │  │Copilot │                                                │      │
+│  │  └────────┘                                                │      │
+│  └───────────────────────────┬────────────────────────────────┘      │
+│                              │                                       │
+│              ┌───────────────┴───────────────┐                       │
+│              │     Self-Healing Retry Logic   │                       │
+│              └───────────────┬───────────────┘                       │
+│                              │                                       │
+│  PHASE 1                    ▼                                       │
+│            ┌──────────────────────────────┐                          │
+│            │  Assessment HTML Report      │                          │
+│            │  (findings + cost estimates) │                          │
+│            └─────────────┬────────────────┘                          │
+│                          │                                           │
+│  PHASE 2                 ▼                                           │
+│            ┌──────────────────────────────┐                          │
+│            │  Recommendation HTML Report  │                          │
+│            │  (P0–P3 fixes + SQL + $$$)   │                          │
+│            └─────────────┬────────────────┘                          │
+│                          │                                           │
+│  PHASE 3                 ▼                                           │
+│            ┌──────────────────────────────┐                          │
+│            │  Compliance Dashboard HTML   │                          │
+│            │  (interactive, executive)    │                          │
+│            └──────────────────────────────┘                          │
+│                                                                      │
+│  All reports → snowflake-cost-optimization/reports/                  │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+1. **Input:** Read-only SQL queries against `SNOWFLAKE.ACCOUNT_USAGE` views with a 30-day lookback window, plus `SHOW WAREHOUSES` for configuration audit.
+2. **Processing:** Query results are assessed against defined thresholds, flagged by severity, and quantified in credits and USD. Failed queries enter the self-healing retry loop.
+3. **Output:** Three self-contained HTML reports saved to `snowflake-cost-optimization/reports/`.
 
 ---
 
@@ -73,6 +148,36 @@ All analysis is **read-only**. No DDL, DML, or configuration changes are execute
 | **Data Retention** | Views retain up to 365 days; skill queries default to last 30 days |
 | **Cost Rate** | $3/credit default; override with account-specific pricing if known |
 | **Execution Time** | ~5-15 minutes for full three-phase workflow |
+| **Browser** | Any modern browser (Chrome, Firefox, Edge) to render HTML reports |
+
+### Workspace Setup
+
+The skill expects the following directory structure:
+
+```
+snowflake-cost-optimization/
+├── SKILL.md                          # Skill definition (do not modify manually)
+├── documentation/
+│   └── snowflake-cost-optimization-doc.md  # This file
+└── reports/                          # Generated HTML reports land here
+    ├── Report-Cost-Optimization-Assessment-<DD-MM-YYYY>.html
+    ├── Report-Cost-Optimization-Recommendation-<DD-MM-YYYY>.html
+    └── Report-Cost-Optimization-Compliance-Dashboard-<DD-MM-YYYY>.html
+```
+
+---
+
+## Quick Start
+
+1. Open Snowsight and navigate to the workspace containing this skill.
+2. Ensure you are using the **ACCOUNTADMIN** role (or equivalent with read access to `SNOWFLAKE.ACCOUNT_USAGE`).
+3. Invoke the skill by asking Cortex Code:
+   > "Run the Snowflake Cost Optimization"
+4. The optimizer executes all three phases sequentially:
+   - Phase 1: Runs 7 queries across 4 cost categories
+   - Phase 2: Produces prioritized recommendations from Phase 1 findings
+   - Phase 3: Generates an interactive compliance dashboard
+5. Review the generated HTML reports in `snowflake-cost-optimization/reports/`.
 
 ---
 
@@ -126,6 +231,8 @@ Phase 1: Assessment ──► Phase 2: Recommendations ──► Phase 3: Compli
 
 ### Category 1: Compute (Warehouse) Costs
 
+Warehouses drive credit consumption through virtual warehouse metering, auto-suspend/resume behavior, multi-cluster scaling, and query spillage to storage.
+
 **Data Source:** `SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY`
 
 **Assessment Query — Top Spending Warehouses (Last 30 Days):**
@@ -145,39 +252,43 @@ ORDER BY total_credits DESC;
 
 After running the query, each warehouse is assessed against these criteria:
 
-| Check | Flag Condition | Risk |
-|-------|---------------|------|
-| AUTO_SUSPEND | Set above 60 seconds | Credit waste during idle periods |
-| AUTO_RESUME | Disabled | Requires manual intervention to start |
-| Right-sizing | XL+ without query spillage evidence | Over-provisioned compute |
-| Multi-cluster scaling | Policy mismatched to workload pattern | Under/over-scaling |
-| Query spillage | Queries spilling to remote storage | Under-sized warehouse |
-| Workload separation | Mixed ETL + interactive on same warehouse | Contention and cost inefficiency |
-| Resource monitors | None configured | No spend governance |
+| Check | Flag Condition | Risk | Severity |
+|-------|---------------|------|----------|
+| AUTO_SUSPEND | Set above 60 seconds | Credit waste during idle periods | High |
+| AUTO_RESUME | Disabled | Requires manual intervention to start | Medium |
+| Right-sizing | XL+ without query spillage evidence | Over-provisioned compute | High |
+| Multi-cluster scaling | Policy mismatched to workload pattern | Under/over-scaling | Medium |
+| Query spillage | Queries spilling to remote storage | Under-sized warehouse | Critical |
+| Workload separation | Mixed ETL + interactive on same warehouse | Contention and cost inefficiency | Medium |
+| Resource monitors | None configured | No spend governance | High |
 
 ### Category 2: Storage Costs
 
+Storage costs come from active storage, Time Travel retention, Fail-Safe, and staged files.
+
 **Assessment Areas:**
 
-| Storage Domain | What to Check |
-|---------------|---------------|
-| Active storage | Consumption by database and schema |
-| Time Travel | Retention > 1 day on non-critical tables |
-| Fail-Safe | Associated storage costs |
-| Stage files | Orphaned or stale files on internal/external stages |
-| Unused objects | Zero-row tables, unused clones, transient/temporary table sprawl |
+| Storage Domain | What to Check | Severity When Flagged |
+|---------------|---------------|----------------------|
+| Active storage | Consumption by database and schema | Info |
+| Time Travel | Retention > 1 day on non-critical tables | Medium |
+| Fail-Safe | Associated storage costs | Low |
+| Stage files | Orphaned or stale files on internal/external stages | Medium |
+| Unused objects | Zero-row tables, unused clones, transient/temporary table sprawl | High |
 
 ### Category 3: Serverless Feature Costs
 
+Serverless costs come from Snowpipe, automatic clustering, materialized view maintenance, search optimization, and replication.
+
 **Assessment Areas:**
 
-| Service | What to Check |
-|---------|---------------|
-| **Snowpipe** | Ingestion frequency, file sizing, credit consumption patterns |
-| **Automatic Clustering** | Tables with clustering enabled but low query benefit |
-| **Materialized View Maintenance** | Stale or infrequently queried materialized views |
-| **Search Optimization** | Tables with search optimization enabled but low usage |
-| **Replication** | Replication group costs, frequency, business justification |
+| Service | What to Check | Severity When Flagged |
+|---------|---------------|----------------------|
+| **Snowpipe** | Ingestion frequency, file sizing, credit consumption patterns | Medium |
+| **Automatic Clustering** | Tables with clustering enabled but low query benefit | High |
+| **Materialized View Maintenance** | Stale or infrequently queried materialized views | Medium |
+| **Search Optimization** | Tables with search optimization enabled but low usage | Medium |
+| **Replication** | Replication group costs, frequency, business justification | High |
 
 ### Category 4: AI Services Costs (Cortex)
 
@@ -282,16 +393,16 @@ ORDER BY usage_date DESC;
 
 After executing all six queries, each Cortex sub-category is assessed:
 
-| Sub-Category | Assessment Focus |
-|-------------|-----------------|
-| **Cortex AI/SQL Functions** | Flag usage of Large/XLarge models where smaller models suffice |
-| **Cortex Analyst** | Daily credit trends, usage anomalies |
-| **Cortex Search** | Per-service credit consumption; flag over-provisioned services |
-| **Cortex Fine-Tuning** | Training cost and frequency justification |
-| **Document AI** | Processing volume and credit efficiency |
-| **Cortex Code CLI** | Usage patterns (currently free — monitor for billing changes) |
-| **Embeddings** | Token volume and credit usage for EMBED_TEXT_768/1024 |
-| **Token Volume** | Flag abnormally high input+output volumes without corresponding business output |
+| Sub-Category | Assessment Focus | Severity When Flagged |
+|-------------|-----------------|----------------------|
+| **Cortex AI/SQL Functions** | Flag usage of Large/XLarge models where smaller models suffice | High |
+| **Cortex Analyst** | Daily credit trends, usage anomalies | Medium |
+| **Cortex Search** | Per-service credit consumption; flag over-provisioned services | Medium |
+| **Cortex Fine-Tuning** | Training cost and frequency justification | High |
+| **Document AI** | Processing volume and credit efficiency | Medium |
+| **Cortex Code CLI** | Usage patterns (currently free — monitor for billing changes) | Low |
+| **Embeddings** | Token volume and credit usage for EMBED_TEXT_768/1024 | Medium |
+| **Token Volume** | Flag abnormally high input+output volumes without corresponding business output | High |
 
 ### Finding Capture Format
 
@@ -354,6 +465,55 @@ Each recommendation includes:
 | **Storage** | `ALTER TABLE` for Time Travel reduction, `DROP` guidance for unused objects, stage cleanup procedures |
 | **Serverless** | `ALTER TABLE` to disable unnecessary clustering, MV refresh policy adjustments, search optimization removal, replication schedule optimization |
 | **AI / Cortex** | Model downgrade recommendations using credit rate tiers, prompt engineering guidance, TRY_COMPLETE/TRY_CLASSIFY adoption, AI_COUNT_TOKENS() for pre-batch estimation, CORTEX_MODELS_ALLOWLIST configuration, warehouse size reduction to MEDIUM or below, result caching strategy |
+
+**Compute Remediation Examples:**
+
+```sql
+-- Set auto-suspend to 60 seconds
+ALTER WAREHOUSE <warehouse_name> SET AUTO_SUSPEND = 60;
+
+-- Enable auto-resume
+ALTER WAREHOUSE <warehouse_name> SET AUTO_RESUME = TRUE;
+
+-- Right-size a warehouse
+ALTER WAREHOUSE <warehouse_name> SET WAREHOUSE_SIZE = 'MEDIUM';
+
+-- Create a resource monitor
+CREATE RESOURCE MONITOR <monitor_name>
+    WITH CREDIT_QUOTA = 1000
+    FREQUENCY = MONTHLY
+    START_TIMESTAMP = IMMEDIATELY
+    TRIGGERS
+        ON 75 PERCENT DO NOTIFY
+        ON 90 PERCENT DO NOTIFY
+        ON 100 PERCENT DO SUSPEND;
+```
+
+**Storage Remediation Examples:**
+
+```sql
+-- Reduce Time Travel retention
+ALTER TABLE <db>.<schema>.<table> SET DATA_RETENTION_TIME_IN_DAYS = 1;
+
+-- Drop unused table (guidance only — verify before executing)
+-- DROP TABLE <db>.<schema>.<table>;
+
+-- Remove staged files
+-- REMOVE @<stage_name>/<path>;
+```
+
+**AI / Cortex Remediation Examples:**
+
+```sql
+-- Restrict expensive models
+ALTER ACCOUNT SET CORTEX_MODELS_ALLOWLIST = 'mistral-7b,llama3.1-8b,mistral-large';
+
+-- Pre-estimate token cost before batch
+SELECT AI_COUNT_TOKENS('mistral-7b', <prompt_column>) FROM <table> LIMIT 100;
+
+-- Use TRY_COMPLETE to avoid charges on errors
+SELECT TRY_COMPLETE('mistral-7b', <prompt>) FROM <table>;
+```
 
 **IMPORTANT:** Phase 2 is strictly documentation and guidance. No DDL, DML, or configuration changes are executed.
 
@@ -425,17 +585,19 @@ Each recommendation includes:
 
 Complete inventory of all SQL queries executed during Phase 1:
 
-| Query ID | Target View | Purpose |
-|----------|-------------|---------|
-| **1a** | `WAREHOUSE_METERING_HISTORY` | Top spending warehouses (30 days) |
-| **4a** | `METERING_DAILY_HISTORY` | Cortex AI services credit usage |
-| **4b** | `CORTEX_AISQL_USAGE_HISTORY` | AI SQL functions usage by model |
-| **4c** | `METERING_DAILY_HISTORY` | Cortex Analyst daily usage |
-| **4d** | `CORTEX_SEARCH_DAILY_USAGE_HISTORY` | Cortex Search service costs |
-| **4e** | `METERING_DAILY_HISTORY` | All AI/ML service costs summary |
-| **4f** | `METERING_DAILY_HISTORY` | Cortex Code CLI / Copilot usage |
+| Query ID | Target View | Purpose | Category |
+|----------|-------------|---------|----------|
+| **1a** | `WAREHOUSE_METERING_HISTORY` | Top spending warehouses (30 days) | Compute |
+| **4a** | `METERING_DAILY_HISTORY` | Cortex AI services credit usage | AI Services |
+| **4b** | `CORTEX_AISQL_USAGE_HISTORY` | AI SQL functions usage by model | AI Services |
+| **4c** | `METERING_DAILY_HISTORY` | Cortex Analyst daily usage | AI Services |
+| **4d** | `CORTEX_SEARCH_DAILY_USAGE_HISTORY` | Cortex Search service costs | AI Services |
+| **4e** | `METERING_DAILY_HISTORY` | All AI/ML service costs summary | AI Services |
+| **4f** | `METERING_DAILY_HISTORY` | Cortex Code CLI / Copilot usage | AI Services |
 
-All queries target `SNOWFLAKE.ACCOUNT_USAGE` schema and use a 30-day lookback window.
+All queries target the `SNOWFLAKE.ACCOUNT_USAGE` schema and use a 30-day lookback window.
+
+**Note:** Categories 2 (Storage) and 3 (Serverless) are assessed through configuration review, `SHOW` commands, and metadata analysis rather than dedicated numbered queries.
 
 ---
 
@@ -443,18 +605,29 @@ All queries target `SNOWFLAKE.ACCOUNT_USAGE` schema and use a 30-day lookback wi
 
 These approximate rates are used for cost estimation and model downgrade recommendations:
 
-| Category | Models | Credits per 1M Tokens |
-|----------|--------|----------------------|
-| **Small** | mistral-7b, gemma-7b | ~0.12 |
-| **Medium** | llama3.1-8b, mistral-large | ~0.60 |
-| **Large** | llama3.1-70b | ~1.21 |
-| **XLarge** | llama3.1-405b | ~3.63 |
-| **Embedding** | embed-text-768, embed-text-1024 | ~0.10 |
+| Category | Models | Credits per 1M Tokens | Monthly Cost at 10M Tokens |
+|----------|--------|----------------------|---------------------------|
+| **Small** | mistral-7b, gemma-7b | ~0.12 | ~$3.60 |
+| **Medium** | llama3.1-8b, mistral-large | ~0.60 | ~$18.00 |
+| **Large** | llama3.1-70b | ~1.21 | ~$36.30 |
+| **XLarge** | llama3.1-405b | ~3.63 | ~$108.90 |
+| **Embedding** | embed-text-768, embed-text-1024 | ~0.10 | ~$3.00 |
+
+**Model Downgrade Savings Examples:**
+
+| Current Model | Downgrade To | Savings per 1M Tokens | % Reduction |
+|--------------|-------------|----------------------|-------------|
+| llama3.1-405b (XLarge) | llama3.1-70b (Large) | ~2.42 credits | 67% |
+| llama3.1-405b (XLarge) | llama3.1-8b (Medium) | ~3.03 credits | 83% |
+| llama3.1-70b (Large) | llama3.1-8b (Medium) | ~0.61 credits | 50% |
+| llama3.1-70b (Large) | mistral-7b (Small) | ~1.09 credits | 90% |
+| mistral-large (Medium) | mistral-7b (Small) | ~0.48 credits | 80% |
 
 **Notes:**
 - Document AI and Cortex Analyst have separate billing models
 - Always check the latest Snowflake pricing documentation for current rates
 - These rates are used for relative comparison and savings estimation
+- Monthly cost column assumes $3/credit rate
 
 ---
 
@@ -463,25 +636,28 @@ These approximate rates are used for cost estimation and model downgrade recomme
 ### Compute Checklist
 
 - [ ] Set AUTO_SUSPEND to 60 seconds (or less for sporadic workloads)
-- [ ] Enable AUTO_RESUME
-- [ ] Right-size warehouses (start small, scale up)
-- [ ] Use separate warehouses for different workload types
+- [ ] Enable AUTO_RESUME on all warehouses
+- [ ] Right-size warehouses (start small, scale up only when spillage occurs)
+- [ ] Use separate warehouses for different workload types (ETL, BI, ad-hoc)
 - [ ] Avoid XL+ warehouses unless queries spill to storage
+- [ ] Configure resource monitors for spend governance
 
 ### Storage Checklist
 
-- [ ] Reduce TIME_TRAVEL retention for non-critical tables
+- [ ] Reduce TIME_TRAVEL retention for non-critical tables (1 day vs default)
 - [ ] Drop unused tables, clones, and stages
 - [ ] Clean up temporary and transient tables
 - [ ] Monitor FAIL_SAFE storage consumption
+- [ ] Remove orphaned staged files
 
 ### Serverless Checklist
 
 - [ ] Identify and tune expensive queries (QUERY_HISTORY)
-- [ ] Add clustering keys to large, frequently filtered tables
+- [ ] Add clustering keys only to large, frequently filtered tables
 - [ ] Use result caching effectively
 - [ ] Avoid SELECT * — select only needed columns
 - [ ] Filter early in queries (predicate pushdown)
+- [ ] Evaluate ROI of materialized views and search optimization
 
 ### AI Services Checklist
 
@@ -507,6 +683,64 @@ These approximate rates are used for cost estimation and model downgrade recomme
 | 6 | **Access Control** | Set CORTEX_MODELS_ALLOWLIST to restrict expensive models |
 | 7 | **Monitoring** | Regularly review METERING_DAILY_HISTORY and CORTEX_AISQL_USAGE_HISTORY |
 
+### Model Selection Decision Tree
+
+```
+Task Requires AI Function
+        │
+        ▼
+Is quality acceptable with mistral-7b (Small)?
+        │
+   ┌────┴────┐
+   YES       NO
+   │         │
+   Use       Try llama3.1-8b (Medium)
+   Small     │
+             ▼
+        Is quality acceptable?
+             │
+        ┌────┴────┐
+        YES       NO
+        │         │
+        Use       Try llama3.1-70b (Large)
+        Medium    │
+                  ▼
+             Is quality acceptable?
+                  │
+             ┌────┴────┐
+             YES       NO
+             │         │
+             Use       Use llama3.1-405b (XLarge)
+             Large     (last resort — 30x cost of Small)
+```
+
+---
+
+## Finding Severity and Priority Matrix
+
+Cost findings are mapped to priorities with recommended timelines and estimated effort:
+
+| Finding | Category | Severity | Effort | Priority | Timeline |
+|---------|----------|----------|--------|----------|----------|
+| Query spillage to remote storage | Compute | Critical | Low | P0 | Immediate |
+| No resource monitor on high-spend warehouse | Compute | High | Low | P0 | Within 24 hours |
+| AUTO_SUSPEND > 600s on ETL warehouse | Compute | High | Low | P1 | Within 7 days |
+| XL+ warehouse without spillage evidence | Compute | High | Low | P1 | Within 7 days |
+| Unused tables consuming storage credits | Storage | High | Medium | P1 | Within 7 days |
+| AUTO_RESUME disabled | Compute | Medium | Low | P1 | Within 7 days |
+| Clustering enabled with low query benefit | Serverless | High | Medium | P1 | Within 7 days |
+| Replication without business justification | Serverless | High | High | P2 | Within 30 days |
+| Time Travel retention > 1 day on non-critical tables | Storage | Medium | Low | P2 | Within 30 days |
+| Large/XLarge model where Small suffices | AI Services | High | Low | P2 | Within 30 days |
+| Orphaned staged files | Storage | Medium | Medium | P2 | Within 30 days |
+| Stale materialized views | Serverless | Medium | Medium | P2 | Within 30 days |
+| Search optimization with low usage | Serverless | Medium | Low | P2 | Within 30 days |
+| Over-provisioned Cortex Search service | AI Services | Medium | Medium | P2 | Within 30 days |
+| Mixed ETL + interactive on same warehouse | Compute | Medium | High | P3 | Within 90 days |
+| High token volume without business output | AI Services | High | Medium | P3 | Within 90 days |
+| Fail-Safe storage optimization | Storage | Low | Low | P3 | Within 90 days |
+| Transient/temporary table sprawl | Storage | Low | Medium | P3 | Within 90 days |
+
 ---
 
 ## Execution Rules
@@ -527,7 +761,27 @@ These approximate rates are used for cost estimation and model downgrade recomme
 
 ## Error Handling and Self-Healing
 
-The skill includes a built-in self-healing mechanism for query failures:
+The skill includes a built-in self-healing mechanism for query failures.
+
+### How It Works
+
+1. **Auto-Recovery:** If any SQL query or workflow step fails, the skill does not halt. It automatically diagnoses the root cause, applies the appropriate fix, and retries.
+
+2. **Inline Logging:** For every failed-and-recovered step, the scanner logs within the relevant phase report:
+   - Step name / query identifier that failed
+   - Exact error message received from Snowflake
+   - Root cause diagnosis
+   - Corrective fix applied
+   - Retry outcome (Success / Failed after retry)
+
+3. **Skill File Updates:** When a query failure is successfully resolved, the corrected query is written back to the SKILL.md file with an inline comment:
+   ```sql
+   -- [FIXED on <DD-MM-YYYY>]: <concise description of what was corrected and why>
+   ```
+
+4. **Graceful Degradation:** If a step fails and cannot be recovered after retry, it is marked as **SKIPPED** with a clear root cause explanation. The skill continues with remaining steps and flags the skipped item under a "Manual Review Required" section.
+
+5. **Self-Healing Summary:** All self-healing actions are consolidated into a dedicated "Self-Healing Summary" section appended to the Phase 1 and Phase 2 reports.
 
 ### Failure Response Flow
 
@@ -544,24 +798,6 @@ Query Fails ──► Diagnose Root Cause ──► Apply Fix ──► Retry
                                               Required" section
 ```
 
-### What Gets Logged for Each Failure
-
-| Field | Description |
-|-------|-------------|
-| Step name / query ID | Which query or step failed |
-| Error message | Exact Snowflake error |
-| Root cause diagnosis | Why it failed |
-| Corrective fix | What was changed |
-| Retry outcome | Success or Failed after retry |
-
-### Self-Healing Actions
-
-- On successful recovery: the corrected query version is updated in the skill file with an inline comment:
-  ```sql
-  -- [FIXED on DD-MM-YYYY]: <description of what was corrected and why>
-  ```
-- All self-healing actions are consolidated into a "Self-Healing Summary" section appended to Phase 1 and Phase 2 reports
-
 ---
 
 ## Report File Inventory
@@ -573,6 +809,68 @@ Query Fails ──► Diagnose Root Cause ──► Apply Fix ──► Retry
 | Phase 3 | `Report-Cost-Optimization-Compliance-Dashboard-DD-MM-YYYY.html` | Interactive compliance tracking dashboard |
 
 All reports are saved to: `snowflake-cost-optimization/reports/`
+
+---
+
+## Data Sources
+
+All queries are read-only and target the following Snowflake system views:
+
+| View / Command | Query ID | Purpose |
+|----------------|----------|---------|
+| `SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY` | 1a | Warehouse credit consumption over 30 days |
+| `SNOWFLAKE.ACCOUNT_USAGE.METERING_DAILY_HISTORY` | 4a, 4c, 4e, 4f | AI services credit usage, Analyst usage, all AI/ML summary, Copilot usage |
+| `SNOWFLAKE.ACCOUNT_USAGE.CORTEX_AISQL_USAGE_HISTORY` | 4b | Cortex AI SQL function usage by model and function |
+| `SNOWFLAKE.ACCOUNT_USAGE.CORTEX_SEARCH_DAILY_USAGE_HISTORY` | 4d | Cortex Search service token and credit consumption |
+| `SNOWFLAKE.ACCOUNT_USAGE.TABLES` | Storage | Table metadata, row counts, sizes, Time Travel settings |
+| `SNOWFLAKE.ACCOUNT_USAGE.STAGES` | Storage | Stage inventory for orphaned file detection |
+| `SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY` | Serverless | Query patterns for clustering/MV/search optimization ROI |
+| `SHOW WAREHOUSES` | Compute | Warehouse configuration (size, auto-suspend, scaling, auto-resume) |
+
+**Note:** `SNOWFLAKE.ACCOUNT_USAGE` views have a latency of up to 45 minutes and retain up to 365 days of data. The skill defaults to a 30-day lookback window.
+
+---
+
+## Post-Run Monitoring
+
+After reviewing reports and applying recommended changes, set up ongoing cost monitoring.
+
+### Key Metrics to Track Monthly
+
+| Metric | Target | Alert If |
+|--------|--------|----------|
+| Total monthly credit consumption | Decreasing trend | Increases > 15% month-over-month |
+| Top warehouse spend | Within budget allocation | Any single warehouse exceeds 40% of total spend |
+| Storage growth rate | Aligned with data growth | Growth > 20% without corresponding business justification |
+| AI Services credits | Within allocated budget | Spike > 50% week-over-week |
+| Unused table count | Zero | New unused tables appear |
+| Resource monitor triggers | No suspensions | Any warehouse hits 100% quota |
+
+### Recommended Re-Run Cadence
+
+| Scenario | Frequency |
+|----------|-----------|
+| Active development with frequent schema/workload changes | Weekly |
+| Stable production environment | Monthly |
+| After major warehouse or clustering changes | On-demand (immediately after) |
+| Pre-budget or quarterly business review | Quarterly |
+| After onboarding new AI/ML workloads | On-demand |
+| After Snowflake pricing changes | On-demand |
+
+### Cost Trend Tracking Query
+
+Use this query to track total credit consumption trends over time:
+
+```sql
+SELECT
+    DATE_TRUNC('week', start_time) AS week,
+    SUM(credits_used) AS total_credits,
+    ROUND(SUM(credits_used) * 3, 2) AS estimated_cost_usd
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE start_time >= DATEADD(month, -3, CURRENT_TIMESTAMP())
+GROUP BY DATE_TRUNC('week', start_time)
+ORDER BY week DESC;
+```
 
 ---
 
@@ -590,3 +888,60 @@ All reports are saved to: `snowflake-cost-optimization/reports/`
 | CORTEX_AISQL_USAGE_HISTORY empty | No Cortex AI SQL function calls in last 30 days | Expected — skill records "no usage" |
 | Report HTML looks broken | Browser compatibility | Use a modern browser (Chrome, Firefox, Edge) |
 | Elapsed time not shown | Phase ran too fast to measure | Displayed as "<1 second" |
+| Storage assessment incomplete | Missing IMPORTED PRIVILEGES on SNOWFLAKE database | Grant IMPORTED PRIVILEGES to the role being used |
+
+---
+
+## Frequently Asked Questions
+
+### Q: Do I need ACCOUNTADMIN to run the cost optimizer?
+
+**A:** Yes, ACCOUNTADMIN is recommended for full access to `SNOWFLAKE.ACCOUNT_USAGE` views. A custom role with `IMPORTED PRIVILEGES` on the `SNOWFLAKE` database may work for most queries, but some views (particularly `CORTEX_AISQL_USAGE_HISTORY` and `CORTEX_SEARCH_DAILY_USAGE_HISTORY`) may require higher privileges.
+
+### Q: Will the optimizer make any changes to my account?
+
+**A:** No. The optimizer is strictly read-only. It executes `SELECT` queries and `SHOW` commands only. All remediation SQL (ALTER WAREHOUSE, DROP TABLE, etc.) is provided as documentation — it is never executed automatically.
+
+### Q: Why is the default cost rate $3/credit?
+
+**A:** $3/credit is a commonly used baseline for Snowflake On-Demand pricing. Your actual rate may differ based on your contract (Capacity or On-Demand), region, and cloud provider. You can override this rate when invoking the skill for more accurate USD estimates.
+
+### Q: How long does a full cost optimization audit take?
+
+**A:** Typically 5–15 minutes depending on account size, number of warehouses, and AI service usage volume. Phase 1 (assessment) takes the longest due to the 7 SQL queries. Phase 2 and 3 are primarily report generation.
+
+### Q: Can I run individual cost categories instead of all four?
+
+**A:** The skill is designed to run all four categories in every execution. However, you can ask Cortex Code to focus on a specific category (e.g., "Analyze only my AI Services costs") — the individual queries are self-contained.
+
+### Q: What happens if a query fails during the audit?
+
+**A:** The self-healing mechanism auto-diagnoses, fixes, and retries. If recovery fails, the query is marked as SKIPPED with error details and flagged under "Manual Review Required." The audit continues with remaining queries.
+
+### Q: How does the compliance dashboard track progress?
+
+**A:** The Phase 3 dashboard cross-references Phase 1 findings with Phase 2 recommendations. It calculates a Cost Recovery Score (savings realized vs. total potential) and an Overall Health Score (percentage of recommendations implemented). It also tracks SLA adherence for each priority level (P0: 24hr, P1: 7d, P2: 30d, P3: 90d).
+
+### Q: Why are there 6 AI queries but only 1 compute query?
+
+**A:** Compute assessment relies heavily on the top-spending warehouses query plus `SHOW WAREHOUSES` for configuration audit. Storage and serverless use metadata views and configuration analysis. AI Services requires 6 separate queries because each Cortex sub-service (AI Functions, Analyst, Search, Fine-Tuning, Document AI, Copilot) has distinct billing views and usage patterns.
+
+### Q: How accurate are the model downgrade savings estimates?
+
+**A:** The credit rate tiers are approximate and based on published Snowflake pricing. Actual savings depend on your specific token volumes, model usage patterns, and contract pricing. The estimates provide directional guidance for identifying the highest-impact optimization opportunities.
+
+### Q: Where are the reports saved?
+
+**A:** All HTML reports are saved to `snowflake-cost-optimization/reports/` in the workspace. File names include the execution date (DD-MM-YYYY format) for version tracking.
+
+### Q: How often should I run the cost optimizer?
+
+**A:** Recommended cadence:
+- **Monthly:** Standard for most accounts
+- **Weekly:** For accounts with rapidly changing workloads or active AI development
+- **Quarterly:** For budget planning and executive reviews
+- **On-demand:** After major changes (new warehouses, new AI workloads, pricing changes)
+
+### Q: Can I use the reports for executive presentations?
+
+**A:** Yes. All three reports are designed to be executive-ready with professional styling, color-coded badges, and print-friendly layouts. The Phase 3 Compliance Dashboard is specifically designed for stakeholder presentation with interactive visualizations and a single composite health score.
