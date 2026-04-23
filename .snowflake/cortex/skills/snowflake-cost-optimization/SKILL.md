@@ -254,8 +254,8 @@ For each finding across all four categories, capture:
 
 ### Phase 1 — Report Output
 
-Generate a self-contained HTML report saved to the `cost-optimization/reports/` folder:
-- **File path:** `cost-optimization/reports/Report-Cost-Optimization-Assessment-<DD-MM-YYYY>.html`
+Generate a self-contained HTML report saved to the `snowflake-cost-optimization/reports/` folder:
+- **File path:** `snowflake-cost-optimization/reports/Report-Cost-Optimization-Assessment-<DD-MM-YYYY>.html`
 - **Must include:** Executive summary with total estimated monthly spend, findings
   breakdown by all four cost categories and severity, detailed findings table per
   category with affected objects and estimated savings, AI model credit rate reference
@@ -307,8 +307,8 @@ documentation and guidance only. No DDL, DML, or configuration changes are permi
 
 ### Phase 2 — Report Output
 
-Generate a self-contained HTML report saved to the `cost-optimization/reports/` folder:
-- **File path:** `cost-optimization/reports/Report-Cost-Optimization-Recommendation-<DD-MM-YYYY>.html`
+Generate a self-contained HTML report saved to the `snowflake-cost-optimization/reports/` folder:
+- **File path:** `snowflake-cost-optimization/reports/Report-Cost-Optimization-Recommendation-<DD-MM-YYYY>.html`
 - **Must include:** Reference to the source Phase 1 assessment report filename,
   prioritized recommendation table (P0 through P3) across all four cost categories,
   detailed fix instructions per finding, estimated remediation effort, total potential
@@ -325,7 +325,7 @@ cost categories.
 
 ### Dashboard Requirements
 
-- **File path:** `cost-optimization/reports/Report-Cost-Optimization-Compliance-Dashboard-<DD-MM-YYYY>.html`
+- **File path:** `snowflake-cost-optimization/reports/Report-Cost-Optimization-Compliance-Dashboard-<DD-MM-YYYY>.html`
 
 - **Category Breakdown:** Display finding count, completion percentage, and estimated
   savings by each category:
@@ -368,7 +368,7 @@ cost categories.
 5. Use $3/credit as the default cost rate for all USD estimates unless account-specific pricing is available; note the assumption clearly in all reports.
 6. All HTML reports must be professionally styled, print-friendly, and suitable for executive and stakeholder review.
 7. Under no circumstances execute any DDL, DML, or account configuration changes — this entire workflow is assessment and documentation only.
-8. Save all generated HTML reports exclusively to the `cost-optimization/reports/` folder — no other output location is permitted.
+8. Save all generated HTML reports exclusively to the `snowflake-cost-optimization/reports/` folder — no other output location is permitted.
 9. For each phase report, display a "Report Generation Summary" banner at the TOP with performance and cost metadata as a quick-reference header card.
 
 ---
